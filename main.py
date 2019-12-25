@@ -3,20 +3,16 @@ from discord.ext import commands, tasks
 from itertools import cycle
 import os
 import sys
-
 import general as gen
 import json
 import asyncio
 from colorama import init, Fore, Back ,Style
-
-
 
 #* CLIENT FUNCTIONS   
 prefix = gen.permu("me! ") + gen.permu("epic ")
 client = commands.Bot(command_prefix= prefix ,case_insensitive=True)
 client.remove_command("help") 
 status = cycle(gen.status)
-
 
 #* COG SET UP STUFF
 @client.command(aliases = ["enable"])
@@ -29,7 +25,6 @@ async def load(ctx, extension):
       await ctx.send(f">>> {extension.capitalize()} commands are now ready to deploy.")
   if not found:
       await ctx.send(f">>> You thought that you could do that? How Cute.")
-
 
 @client.command(aliases = ["disable"])
 async def unload(ctx, extension):
