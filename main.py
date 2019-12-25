@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 from itertools import cycle
 import os
 import sys
-import webserver
+
 import general as gen
 import json
 import asyncio
@@ -88,7 +88,7 @@ async def on_command_error(ctx, error):
     await asyncio.sleep(1)
     await ctx.channel.purge(limit=1)
   gen.error_message(error)
-webserver.keep_alive()
+
 
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
 client.run(TOKEN)
