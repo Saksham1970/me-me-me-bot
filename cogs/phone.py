@@ -29,16 +29,11 @@ class Phone(commands.Cog):
             bg_pos = tuple(phones[Ptype]["screen"])
             body_pos = tuple(phones[Ptype]["body"])
           
-            with Image.open(f"{Ptype}.png") as image:
+            with Image.open(f"./Phones/{Ptype}.png") as image:
                 
-                width,height = image.size
-                
-                draw = ImageDraw.Draw(image)
                 ImageDraw.floodfill(image,xy = bg_pos,value = bg_color)
                 ImageDraw.floodfill(image,xy = body_pos,value = body_color)
-                
-                
-                timepos = (int(0.1*width),int(0.2*height))
+                                
                 image.save('phone.png') 
                 
             
