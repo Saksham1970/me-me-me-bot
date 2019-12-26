@@ -19,16 +19,63 @@ class Meme(commands.Cog):
     async def meme(self,ctx,subreddit = "memes", amount = 1,types = "hot"):
         reddit = gen.reddit
         subr = reddit.subreddit(subreddit)
-        if types.lower() == "hot":
-            memes = subr.hot(limit=amount)
+        if types.lower() == "hot":                  #* Checks no stickied
+            memes=[]
+            i=1
+            while len(memes) < amount:
+                x=[]
+                for j in subr.hot(limit=i):
+                    x+=[j]
+                x=x[-1]
+                if not x.stickied:
+                    memes += [x]
+                i+=1
+
+                        
         elif types.lower() == "top":
-            memes = subr.top(limit=amount)
+            memes=[]
+            i=1
+            while len(memes) < amount:
+                x=[]
+                for j in subr.top(limit=i):
+                    x+=[j]
+                x=x[-1]
+                if not x.stickied:
+                    memes += [x]
+                i+=1
         elif types.lower() == "new":
-            memes = subr.new(limit=amount)
+            memes=[]
+            i=1
+            while len(memes) < amount:
+                x=[]
+                for j in subr.new(limit=i):
+                    x+=[j]
+                x=x[-1]
+                if not x.stickied:
+                    memes += [x]
+                i+=1
         elif types.lower() == "controversial":
-            memes = subr.controversial(limit=amount)
+            memes=[]
+            i=1
+            while len(memes) < amount:
+                x=[]
+                for j in subr.controversial(limit=i):
+                    x+=[j]
+                x=x[-1]
+                if not x.stickied:
+                    memes += [x]
+                i+=1
         elif types.lower() == "rising":
-            memes = subr.rising(limit=amount)
+            memes=[]
+            i=1
+            while len(memes) < amount:
+                x=[]
+                for j in subr.rising(limit=i):
+                    x+=[j]
+                x=x[-1]
+                if not x.stickied:
+                    memes += [x]
+                i+=1
         else:
             await ctx.send("No Boi, I only see 'Hot','Top','New'.'Controversial','Rising'.")
             return
