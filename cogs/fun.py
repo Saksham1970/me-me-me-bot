@@ -56,7 +56,7 @@ class Fun(commands.Cog):
         await ctx.send(embed = dix)
   
     #! EMOJI
-    @commands.command()
+    @commands.command(aliases = ['emo'])
     async def emoji(self,ctx,emoji_name,amount = 3):
       strs = f":{emoji_name}: "*amount
       await ctx.send(strs)

@@ -21,7 +21,7 @@ class Currency(commands.Cog):
         mem_info = gen.db_receive("inf")
         if disc in mem_info:                   
             coins = (mem_info[disc])["coins"]
-        else:                                                                                                                        #! TODO MAKE THIS A FUNCTIOn
+        else:                                                                                                                       
             gen.new_entry(name,disc)
             coins = (mem_info[disc])["coins"]
 
@@ -31,13 +31,13 @@ class Currency(commands.Cog):
             cpu_dye = random.randint(1,6)
             if player_dye > cpu_dye:
                 won_lost = "Bet Won"
-                amount_rec = (amount)*(player_dye-cpu_dye)
+                amount_rec = (amount)*((player_dye-cpu_dye)**(1/3))
             elif player_dye==cpu_dye:
                 won_lost = "Bet Won"
-                amount_rec=(amount)*10
+                amount_rec=(amount)*2
             else:
                 won_lost = "Bet Lost"
-                amount_rec= -(amount)*(cpu_dye-player_dye)
+                amount_rec= -(amount)
             coins+=amount_rec
 
             (mem_info[disc])["coins"] = coins

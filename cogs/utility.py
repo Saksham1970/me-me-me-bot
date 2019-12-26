@@ -19,7 +19,7 @@ class Utility(commands.Cog):
         info = discord.Embed(
             colour = discord.Colour.red(),
             title = "ME!ME!ME!",
-            description = """Hello, I am sex-slave owned by **Saksy** and the epicest man alive **Blonteractor**.
+            description = """Hello, I am sex-slave owned by **Saksy-sama** and the epicest man alive **Blonteractor**.
             `I feel horny.
             I wanna ride on your ugly bastard ass.
             Oh Yes Daddy, Slap me like every ratchet whores from A bad neighbourhood.`
@@ -115,6 +115,10 @@ class Utility(commands.Cog):
         await ctx.send(embed = help)
 
 
+    #?
+    #? FUN
+    #?
+
     @help.command()
     async def fun(self,ctx):
         help = discord.Embed(
@@ -122,12 +126,15 @@ class Utility(commands.Cog):
                   title = ":grin:  **FUN**",
                   description = "These commands will make your day great."
               )
-        help.add_field(name = "`DIX`[Penis, Dicc, Peepee, Dick]", value = 'Well, i calculate your peepee with my special MEASURING STICK that goes in ME! ass.')
-        help.add_field(name = "`QUES`[8ball, _8ball, Question] (Question)", value = 'I have answers to all your questions in this GOD DAMN WORLD.')
+        help.add_field(name = "`DIX` [Penis, Dicc, Peepee, Dick]", value = 'Well, i calculate your peepee with my special MEASURING STICK that goes in ME! ass.')
+        help.add_field(name = "`QUES` [8ball, _8ball, Question] (Question)", value = 'I have answers to all your questions in this GOD DAMN WORLD.')
         help.add_field(name = "`MEME` {Subreddit} {Amount} {Type}", value = 'Get some fresh memes, you insolent prick.')
-        help.add_field(name = "`EMOJI`(Emoji){Amount}", value = 'Returns the emoji or maybe not. ')
+        help.add_field(name = "`EMOJI` [Emo] (Emoji){Amount}", value = 'Returns the emoji or maybe not. ')
         await ctx.send(embed = help)
 
+    #?
+    #? UTILITY
+    #?
 
     @help.command()
     async def utility(self,ctx):
