@@ -31,13 +31,16 @@ class Currency(commands.Cog):
             cpu_dye = random.randint(1,6)
             if player_dye > cpu_dye:
                 won_lost = "Bet Won"
-                amount_rec = int((amount)*((player_dye-cpu_dye)**(1/3)))
+                amount_rec = int((amount)*((player_dye-cpu_dye-0.9)**(1/3))-1)
+                Multiplier = int((((player_dye-cpu_dye)**(1/3))-1)*100)
             elif player_dye==cpu_dye:
                 won_lost = "Bet Won"
                 amount_rec=(amount)*2
+                Multiplier = 200
             else:
                 won_lost = "Bet Lost"
-                amount_rec= -(amount)
+                amount_rec =- (amount)
+                Multiplier =- 100
             coins+=amount_rec
 
             (mem_info[disc])["coins"] = coins
@@ -62,6 +65,7 @@ class Currency(commands.Cog):
         bet_list.add_field(name="Your Roll", value = player_dye,inline = True)
         bet_list.add_field(name="ME! Roll", value = cpu_dye,inline = True)
         bet_list.add_field(name = "WON/LOST",value =won_lost ,inline=True)
+        bet_list.add_field(name = "Multiplier",value = f"{Multiplier}%",inline=True)
         bet_list.add_field(name = "Amount Recieved",value = amount_rec,inline=True)
         bet_list.add_field(name = "Total Souls Left",value = coins ,inline=True)
         bet_list.set_author(name = f"{name}'s BET", icon_url = ctx.author.avatar_url)
