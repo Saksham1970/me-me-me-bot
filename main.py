@@ -7,6 +7,7 @@ import general as gen
 import json
 import asyncio
 from colorama import init, Fore, Back ,Style
+#! ME inside
 
 #* CLIENT FUNCTIONS   
 prefix = gen.permu("me! ") + gen.permu("epic ")
