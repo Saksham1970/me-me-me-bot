@@ -43,7 +43,7 @@ class Fun(commands.Cog):
         random_p = random.randrange(1, 10)
         dicc_string = random_p 
         name = str(ctx.message.author)[:-5]
-        found=False
+      
         for role in ctx.author.roles:
             if role.id == gen.admin_role_id:
                 dicc_string = 11
