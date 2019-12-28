@@ -57,7 +57,7 @@ def cog_load_startup():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-
+'''
 # * BACKING UP AND COMMIT STUFF
 @client.command(aliases=["commit", "baccup"])
 async def backup(ctx,*, msg=""):
@@ -74,24 +74,25 @@ async def backup(ctx,*, msg=""):
             await ctx.send(">>> Everything backed up with no message because your lazy ass could'nt be bothered to type")
     else:
         await ctx.send("Shut Up")
-
+'''
 # ? EVENTS
 
 # * STATUS CHANGE
 @tasks.loop(seconds=6)
 async def change_status():
     await client.change_presence(activity=discord.Game(next(status)))
-
+'''
 @tasks.loop(hours = 24)
 async def auto_backup():
     gen.commit("Auto")
+'''
 # * ON READY
 @client.event
 async def on_ready():
     change_status.start()
     cog_load_startup()
-    auto_backup.start()
-    gen.reset()
+    #auto_backup.start()
+    #gen.reset()
 
     print('Bot is ready as sef!')
 

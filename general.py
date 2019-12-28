@@ -35,6 +35,7 @@ password= os.environ.get("REDDIT_PASSWORD"),
 user_agent="FuqU"
 )
 
+'''
 repo = Repo("./Database/.git")
 def commit(sp_msg : str()):
     now = datetime.now()
@@ -61,7 +62,7 @@ def reset():
         pass
     print("Pulled Database Successfully")
 
-
+'''
 
 def permu(strs):
     if len(strs)==1:
