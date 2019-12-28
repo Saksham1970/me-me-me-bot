@@ -57,7 +57,7 @@ def cog_load_startup():
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             client.load_extension(f"cogs.{filename[:-3]}")
-'''
+
 # * BACKING UP AND COMMIT STUFF
 @client.command(aliases=["commit", "baccup"])
 async def backup(ctx,*, msg=""):
@@ -74,7 +74,7 @@ async def backup(ctx,*, msg=""):
             await ctx.send(">>> Everything backed up with no message because your lazy ass could'nt be bothered to type")
     else:
         await ctx.send("Shut Up")
-'''
+
 # ? EVENTS
 
 # * STATUS CHANGE
