@@ -36,8 +36,11 @@ user_agent="FuqU"
 )
 
 
-repo = Repo("./Database/.git")
+
 def commit(sp_msg : str()):
+
+    os.rename("./Database/gothy","./Database/.git")
+    repo = Repo("./Database/.git")
     now = datetime.now()
     date_time = now.strftime("%d/%m/%Y %H:%M:%S")
     commit_msg = f"Database updated - {date_time} -> {sp_msg} "
@@ -47,7 +50,7 @@ def commit(sp_msg : str()):
     
     origin = repo.remote(name = "origin")
     origin.push()
-
+    os.rename("./Database/.git","./Database/gothy")
 def reset():
     
     origin = repo.remote(name = "origin")

@@ -91,6 +91,7 @@ async def auto_backup():
 async def on_ready():
     change_status.start()
     cog_load_startup()
+    
     #auto_backup.start()
     #gen.reset()
 
