@@ -3,6 +3,8 @@ import os
 import discord
 from colorama import init, Fore, Back ,Style
 import json
+from git import Repo
+from datetime import datetime
 
 roles = ['Prostitute','Rookie','Adventurer','Player','Hero']
 
@@ -11,6 +13,8 @@ status = ["Saksham's Son", 'Is Mayank','Who Is Gay']
 subreddits = ["memes","dankmemes","cursedcomments","animemes"]
 
 epic = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+repo = Repo(f"{os.getcwd()}\.git")
 
 admin_role_id = 632906375839744001 
 MEE6_disc = 4876
@@ -29,6 +33,17 @@ username= os.environ.get("REDDIT_USERNAME"),
 password= os.environ.get("REDDIT_PASSWORD"),
 user_agent="FuqU"
 )
+
+def commit(sp_msg : str()):
+    now = datetime.now()
+    date_time = now.strftime("%d/%m/%Y %H:%M:%S")
+    commit_msg = f"Database updated - {date_time} -> {sp_msg} "
+    
+    repo.git.add(update = True)
+    repo.index.commit(commit_msg)
+    
+    origin = repo.remote(name = "origin")
+    origin.push()
 
 
 
@@ -62,8 +77,10 @@ def db_receive(name):
 def db_update(name,db):
     with open(f'{name}.json','w') as f:                                                                                            
         json.dump(db,f)
+    commit("Manual Update")
 
 def new_entry(name,disc):
     mem_info=db_receive("inf")
     mem_info[disc] = {"name": name,"messages" : 0 , "level" : "Prostitute" , "coins" : 500}
     db_update("inf",mem_info)
+    commit("Manual Update")
