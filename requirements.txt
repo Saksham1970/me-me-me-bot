@@ -5,3 +5,4 @@ asyncio
 colorama
 Pillow
 pillow
+gitpython
