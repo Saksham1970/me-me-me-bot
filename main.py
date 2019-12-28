@@ -60,13 +60,20 @@ def cog_load_startup():
 
 # * BACKING UP AND COMMIT STUFF
 @client.command(aliases=["commit", "baccup"])
-async def backup(ctx, msg=""):
-    gen.commit("Manual command commit, " + msg)
-    if not msg == "":
-        await ctx.send(">>> Everything backed up with message - ```" + msg + "```, boss")
+async def backup(ctx,*, msg=""):
+    
+    found =False
+    for role in ctx.author.roles:
+            if role.id == gen.admin_role_id:
+                found=True     
+    if found:
+        gen.commit("Manual, " + msg)
+        if not msg == "":
+            await ctx.send(f">>> Everything backed up with message - ```{msg}```")
+        else:
+            await ctx.send(">>> Everything backed up with no message because your lazy ass could'nt be bothered to type")
     else:
-        await ctx.send(">>> Everything backed up with no message because your lazy ass could'nt be bothered to type")
-
+        await ctx.send("Shut Up")
 
 # ? EVENTS
 
@@ -75,11 +82,17 @@ async def backup(ctx, msg=""):
 async def change_status():
     await client.change_presence(activity=discord.Game(next(status)))
 
+@tasks.loop(hours = 24)
+async def auto_backup():
+    gen.commit("Auto")
 # * ON READY
 @client.event
 async def on_ready():
     change_status.start()
     cog_load_startup()
+    auto_backup.start()
+    gen.reset()
+
     print('Bot is ready as sef!')
 
 # * DELAYS FOR INTAKE

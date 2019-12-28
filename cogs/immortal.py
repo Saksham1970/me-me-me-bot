@@ -19,9 +19,8 @@ class Immortal(commands.Cog):
                 found=True  
 
         if found:
-            with open('inf.json','r') as f:
-                mem_info = json.load(f)
-
+            mem_info = gen.db_receive("inf")
+            
         
             for key in mem_info:
                 stats = discord.Embed(
@@ -74,7 +73,7 @@ class Immortal(commands.Cog):
         
         found=False
         
-        for role in ctx.author.roles:
+        for role in ctx.author.roles:                                                                               #! TODO make this a function
             if role.id == gen.admin_role_id:
                 found=True    
         mee6_disc = gen.MEE6_disc

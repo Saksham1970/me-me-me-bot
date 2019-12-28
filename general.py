@@ -4,6 +4,7 @@ import discord
 from colorama import init, Fore, Back ,Style
 import json
 from git import Repo
+import git
 from datetime import datetime
 
 roles = ['Prostitute','Rookie','Adventurer','Player','Hero']
@@ -14,7 +15,7 @@ subreddits = ["memes","dankmemes","cursedcomments","animemes"]
 
 epic = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-repo = Repo(f"{os.getcwd()}\.git")
+
 
 admin_role_id = 632906375839744001 
 MEE6_disc = 4876
@@ -34,6 +35,7 @@ password= os.environ.get("REDDIT_PASSWORD"),
 user_agent="FuqU"
 )
 
+repo = Repo("./Database/.git")
 def commit(sp_msg : str()):
     now = datetime.now()
     date_time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -44,6 +46,20 @@ def commit(sp_msg : str()):
     
     origin = repo.remote(name = "origin")
     origin.push()
+
+def reset():
+    
+    origin = repo.remote(name = "origin")
+    origin.pull()
+    
+    g = git.Git("./Database")
+    g.execute("git stash")
+
+    try:
+        g.execute("git stash drop")
+    except:
+        pass
+    print("Pulled Database Successfully")
 
 
 
@@ -71,16 +87,14 @@ def error_message(error):
     print(Fore.WHITE+Back.BLACK)
   
 def db_receive(name):
-    with open(f'{name}.json','r') as f:   
+    with open(f'./Database/{name}.json','r') as f:   
         return json.load(f)                                                                                       
 
 def db_update(name,db):
-    with open(f'{name}.json','w') as f:                                                                                            
+    with open(f'./Database/{name}.json','w') as f:                                                                                            
         json.dump(db,f)
-    commit("Manual Update")
 
 def new_entry(name,disc):
     mem_info=db_receive("inf")
     mem_info[disc] = {"name": name,"messages" : 0 , "level" : "Prostitute" , "coins" : 500}
     db_update("inf",mem_info)
-    commit("Manual Update")
