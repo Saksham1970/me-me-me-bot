@@ -47,8 +47,9 @@ def commit(sp_msg: str()):
         g.execute(f'git commit -a -m "{commit_msg}" ')
         g.execute("git push")
     except Exception as e:
-        print(e)
+        return e
     os.rename("./Database/.git", "./Database/gothy")
+    return None
 
 
 def reset():

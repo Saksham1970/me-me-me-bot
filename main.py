@@ -60,14 +60,15 @@ def cog_load_startup():
 
 # * BACKING UP AND COMMIT STUFF
 @client.command(aliases=["commit", "baccup"])
-async def backup(ctx,*, msg=""):
-    
-    found =False
+async def backup(ctx, *, msg=""):
+
+    found = False
     for role in ctx.author.roles:
-            if role.id == gen.admin_role_id:
-                found=True     
+        if role.id == gen.admin_role_id:
+            found = True
     if found:
-        gen.commit("Manual, " + msg)
+        exc = gen.commit("Manual, " + msg)
+        await ctx.send(exc)
         if not msg == "":
             await ctx.send(f">>> Everything backed up with message - ```{msg}```")
         else:
@@ -91,9 +92,9 @@ async def auto_backup():
 async def on_ready():
     change_status.start()
     cog_load_startup()
-    
-    #auto_backup.start()
-    #gen.reset()
+
+    # auto_backup.start()
+    # gen.reset()
 
     print('Bot is ready as sef!')
 
