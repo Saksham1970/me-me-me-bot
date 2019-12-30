@@ -58,9 +58,9 @@ class Utility(commands.Cog):
         )
         embed.set_author(name =ctx.author.name,icon_url = ctx.author.avatar_url)
         await ctx.send(embed = embed)
-
+   
     #*Check
-    @commands.command(aliases = ["info"])
+    @commands.command(aliases = ["about"])
     async def check(self,ctx, member: discord.Member):
         
         roles = [role for role in member.roles]
@@ -84,6 +84,7 @@ class Utility(commands.Cog):
         embed.add_field(name="Created at",value=created_at)
         
         await ctx.send(embed=embed)
+    
     #*AVATAR
     @commands.command(aliases = ["av"])
     async def avatar(self,ctx,member: discord.Member):
@@ -94,7 +95,10 @@ class Utility(commands.Cog):
         embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
         
         await ctx.send(embed=embed)
+
+
     #* HELP
+   
     @commands.group()
     async def help(self, ctx):
         if ctx.invoked_subcommand is None:
