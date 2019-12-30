@@ -47,6 +47,7 @@ class Utility(commands.Cog):
     #* SUGGEST
     @commands.command()
     async def suggest(self,ctx,*,suggestion):
+        await ctx.channel.purge(limit=1)
         embed = discord.Embed(
             colour = discord.Colour.from_rgb(255,0,0),
             title = "Suggestion",
