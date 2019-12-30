@@ -44,6 +44,17 @@ class Utility(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(">>> Enter the amount of mesages to be cleared if you dont want spanky / or do (depending on who you are)")
 
+    #* SUGGEST
+    @commands.command()
+    async def suggest(self,ctx,*,suggestion)
+        embed = discord.Embed(
+            colour = discord.Colour.from_rgb(255,0,0)
+            title = "Suggestion"
+            author = ctx.author.name
+            description = suggestion
+        )
+        await ctx.send(embed = embed)
+
     #* HELP
     @commands.group()
     async def help(self, ctx):
