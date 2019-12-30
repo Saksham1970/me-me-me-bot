@@ -46,13 +46,15 @@ class Utility(commands.Cog):
 
     #* SUGGEST
     @commands.command()
-    async def suggest(self,ctx,*,suggestion)
+    async def suggest(self,ctx,*,suggestion):
         embed = discord.Embed(
-            colour = discord.Colour.from_rgb(255,0,0)
-            title = "Suggestion"
-            author = ctx.author.name
+            colour = discord.Colour.from_rgb(255,0,0),
+            title = "Suggestion",
+            
             description = suggestion
+
         )
+        embed.set_author(name =ctx.author.name,icon_url = ctx.author.avatar_url)
         await ctx.send(embed = embed)
 
     #* HELP
