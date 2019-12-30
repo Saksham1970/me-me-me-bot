@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import asyncio
+from datetime import datetime
 
 class Utility(commands.Cog):
 
@@ -58,6 +59,41 @@ class Utility(commands.Cog):
         embed.set_author(name =ctx.author.name,icon_url = ctx.author.avatar_url)
         await ctx.send(embed = embed)
 
+    #*Check
+    @commands.command(aliases = ["info"])
+    async def check(self,ctx, member: discord.Member):
+        
+        roles = [role for role in member.roles]
+        role_names = []
+        for role in roles:
+            role_names +=[role.mention]
+        joined_at = member.joined_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
+        created_at = member.created_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
+        
+        embed = discord.Embed(colour=member.colour, timestamp=ctx.message.created_at)
+
+        embed.set_author(name=f"User info of {member.name}")
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.add_field(name="ID: ",value=member.id)
+        embed.add_field(name="Guild's Nickname: ",value=member.nick)
+      
+        embed.add_field(name="Top role: ",value=member.top_role.mention)
+        embed.add_field(name=f"Roles ({len(roles)})",value=" | ".join(role_names) ,inline = False)
+        embed.add_field(name="Joined at",value=joined_at)
+        embed.add_field(name="Created at",value=created_at)
+        
+        await ctx.send(embed=embed)
+    #*AVATAR
+    @commands.command(aliases = ["av"])
+    async def avatar(self,ctx,member: discord.Member):
+        embed = discord.Embed(colour=member.colour, timestamp=ctx.message.created_at)
+
+        embed.set_author(name=f"Avatar info of {member.name}")
+        embed.set_image(url=member.avatar_url)
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        
+        await ctx.send(embed=embed)
     #* HELP
     @commands.group()
     async def help(self, ctx):
