@@ -46,8 +46,21 @@ def commit(sp_msg: str()):
     try:
         g.execute(f'git commit -a -m "{commit_msg}" ')
         g.execute("git push")
-    except Exception as e:
-        return e
+    except :
+        try:
+            os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/bin/git"
+            g.execute(f'git commit -a -m "{commit_msg}" ')
+            g.execute("git push")
+        except:
+            try:
+                os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/lib/git-core"
+                g.execute(f'git commit -a -m "{commit_msg}" ')
+                g.execute("git push")
+            except Exception as e:
+                return e
+
+
+            
     os.rename("./Database/.git", "./Database/gothy")
     return None
 
