@@ -63,7 +63,7 @@ def commit(sp_msg: str()):
 
             
     os.rename("./Database/.git", "./Database/gothy")
-    return os.environ["GIT_PYTHON_GIT_EXECUTABLE"] 
+    return os.environ.get("GIT_PYTHON_GIT_EXECUTABLE")
 
 
 def reset():
