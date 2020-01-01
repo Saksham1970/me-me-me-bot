@@ -3,8 +3,7 @@ import os
 import discord
 from colorama import init, Fore, Back, Style
 import json
-from git import Repo
-import git
+
 from datetime import datetime
 
 roles = ['Prostitute', 'Rookie', 'Adventurer', 'Player', 'Hero']
