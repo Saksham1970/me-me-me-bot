@@ -87,7 +87,9 @@ class Utility(commands.Cog):
     
     #*AVATAR
     @commands.command(aliases = ["av"])
-    async def avatar(self,ctx,member: discord.Member):
+    async def avatar(self,ctx,member: discord.Member ):
+        if not member:
+            member = ctx.author
         embed = discord.Embed(colour=member.colour, timestamp=ctx.message.created_at)
 
         embed.set_author(name=f"Avatar info of {member.name}")

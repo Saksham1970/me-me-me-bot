@@ -36,7 +36,7 @@ reddit = praw.Reddit(
 
 
 def commit(sp_msg: str()):
-
+    import git
     os.rename("./Database/gothy", "./Database/.git")
 
     now = datetime.now()
