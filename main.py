@@ -67,8 +67,7 @@ async def backup(ctx, *, msg=""):
         if role.id == gen.admin_role_id:
             found = True
     if found:
-        exc = gen.commit("Manual, " + msg)
-        await ctx.send(exc)
+        gen.commit("Manual, " + msg)
         if not msg == "":
             await ctx.send(f">>> Everything backed up with message - ```{msg}```")
         else:

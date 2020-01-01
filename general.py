@@ -42,13 +42,9 @@ def commit(sp_msg: str()):
     date_time = now.strftime("%d/%m/%Y %H:%M:%S")
     commit_msg = f"Database updated - {date_time} -> {sp_msg} "
     g = git.Git("./Database")
-    try:
-
-        g.execute(f'git commit -a -m "{commit_msg}" ')
-        g.execute("git push")
-    except Exception as e:
-        os.rename("./Database/.git", "./Database/gothy")
-        return e
+    print(os.path.abspath("."))
+    g.execute(f'git commit -a -m "{commit_msg}" ')
+    g.execute("git push -f")
     #     try:    
     #         os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/bin/git"
     #         g.execute(f'git commit -a -m "{commit_msg}" ')
@@ -64,7 +60,7 @@ def commit(sp_msg: str()):
 
             
     os.rename("./Database/.git", "./Database/gothy")
-    return "Hurray"
+    
 
 
 def reset():
