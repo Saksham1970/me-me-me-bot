@@ -8,7 +8,5 @@ pillow
 gitpython
 ffmpeg
 youtube_dl
-re
 lxml
-shutil
 pynacl
