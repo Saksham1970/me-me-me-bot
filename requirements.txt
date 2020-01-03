@@ -11,4 +11,4 @@ youtube_dl
 lxml
 pynacl
 urllib3
-requests
+
