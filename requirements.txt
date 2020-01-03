@@ -10,3 +10,4 @@ ffmpeg
 youtube_dl
 lxml
 pynacl
+urllib
