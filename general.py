@@ -3,7 +3,8 @@ import os
 import discord
 from colorama import init, Fore, Back, Style
 import json
-
+import git
+from git import Repo
 from datetime import datetime
 
 roles = ['Prostitute', 'Rookie', 'Adventurer', 'Player', 'Hero']
@@ -35,48 +36,44 @@ reddit = praw.Reddit(
 
 
 def commit(sp_msg: str()):
-    import git
+   
     os.rename("./Database/gothy", "./Database/.git")
 
     now = datetime.now()
     date_time = now.strftime("%d/%m/%Y %H:%M:%S")
     commit_msg = f"Database updated - {date_time} -> {sp_msg} "
     g = git.Git("./Database")
-    print(os.path.abspath("."))
-    g.execute(f'git commit -a -m "{commit_msg}" ')
-    g.execute("git push -f")
-    #     try:    
-    #         os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/bin/git"
-    #         g.execute(f'git commit -a -m "{commit_msg}" ')
-    #         g.execute("git push")
-    #     except:
-    #         try:
-    #             os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "/usr/lib/git-core"
-    #             g.execute(f'git commit -a -m "{commit_msg}" ')
-    #             g.execute("git push")
-    #         except Exception as e:
-    #            return e
-    
-
+    try:
+        g.execute(f'git commit -a -m "{commit_msg}" ')
+        g.execute("git push --force")
+    except:
+        print("Commit upto the point. Can't commit.")
+        done = False
+    else:
+        done = True
             
     os.rename("./Database/.git", "./Database/gothy")
-    
+    return done
 
 
 def reset():
+    os.rename("./Database/gothy", "./Database/.git")
 
+    repo = Repo("./Database/.git")
     origin = repo.remote(name="origin")
     origin.pull()
 
     g = git.Git("./Database")
-    g.execute("git stash")
+    print("Pulled Database Successfully")
+    os.rename("./Database/.git", "./Database/gothy")
+
+"""     g.execute("git stash")
 
     try:
         g.execute("git stash drop")
     except:
         pass
-    print("Pulled Database Successfully")
-
+ """
 
 def permu(strs):
     if len(strs) == 1:
@@ -110,7 +107,7 @@ def db_receive(name):
 
 def db_update(name, db):
     with open(f'./Database/{name}.json', 'w') as f:
-        json.dump(db, f)
+        json.dump(db, f, indent=4)
 
 
 def new_entry(name, disc):

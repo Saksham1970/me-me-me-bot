@@ -1,12 +1,17 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+
 import discord
 from discord.ext import commands, tasks
+
 from itertools import cycle
-import os
-import sys
 import general as gen
-import json
 import asyncio
-from colorama import init, Fore, Back, Style
+
+
+
 #! ME inside
 
 # * CLIENT FUNCTIONS
@@ -67,13 +72,36 @@ async def backup(ctx, *, msg=""):
         if role.id == gen.admin_role_id:
             found = True
     if found:
-        gen.commit("Manual, " + msg)
-        if not msg == "":
+        done = gen.commit("| Manual |" + msg)
+        if not msg == "" and done:
             await ctx.send(f">>> Everything backed up with message - ```{msg}```")
-        else:
+        elif msg == "":
             await ctx.send(">>> Everything backed up with no message because your lazy ass could'nt be bothered to type")
+        else:
+            await ctx.send(">>> Couldn't Backup Since Commit upto the mark.")
     else:
         await ctx.send("Shut Up")
+
+@client.command(aliases=["Debug","Development"])
+async def develop(ctx , on_off):
+    
+    found = False
+    for role in ctx.author.roles:                                                                               #! TODO make this a function
+            if role.id == gen.admin_role_id:
+                found=True    
+    if not found:
+        await ctx.send("SHUT UP.")
+        return
+    var = gen.db_receive("var")
+    if on_off.lower() == "on" or on_off.lower() == "true":    
+        var["DEV"] = 1
+        await ctx.send("DONE.") 
+    elif on_off.lower() == "off" or on_off.lower() == "false":    
+        var["DEV"] = 0
+        await ctx.send("DONE.")
+    else:
+        await ctx.send("ITS on OR off. (True or False).")
+    gen.db_update("var",var)
 
 # ? EVENTS
 
@@ -81,19 +109,20 @@ async def backup(ctx, *, msg=""):
 @tasks.loop(seconds=6)
 async def change_status():
     await client.change_presence(activity=discord.Game(next(status)))
-'''
+
 @tasks.loop(hours = 24)
 async def auto_backup():
-    gen.commit("Auto")
-'''
+    if not gen.db_receive("var")["DEV"]:
+        gen.commit("| Auto |")
+
 # * ON READY
 @client.event
 async def on_ready():
     change_status.start()
     cog_load_startup()
-
-    # auto_backup.start()
-    # gen.reset()
+    
+    auto_backup.start() 
+    gen.reset()
 
     print('Bot is ready as sef!')
 
@@ -110,7 +139,8 @@ async def on_command_error(ctx, error):
         await ctx.send(">>> That isn't even a command, you have again proven to be a ME!stake.")
         await asyncio.sleep(1)
         await ctx.channel.purge(limit=1)
-    gen.error_message(error)
+    if not isinstance(error,commands.MissingRequiredArgument):
+        gen.error_message(error)
 
 
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")

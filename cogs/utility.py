@@ -4,6 +4,46 @@ import json
 import asyncio
 from datetime import datetime
 
+#! RECALLING FUNCTIONS
+def check_command(ctx,member):
+    roles = [role for role in member.roles]
+    role_names = []
+    for role in roles:
+        role_names +=[role.mention]
+    joined_at = member.joined_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
+    created_at = member.created_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
+    
+    embed = discord.Embed(colour=member.colour, 
+                          title = f"User info of {member.name}",
+                          url = str(member.avatar_url),
+                          timestamp=ctx.message.created_at)
+
+
+
+    embed.set_thumbnail(url=member.avatar_url)
+    embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+    embed.add_field(name="ID: ",value=member.id)
+    embed.add_field(name="Guild's Nickname: ",value=member.nick)
+    
+    embed.add_field(name="Top role: ",value=member.top_role.mention)
+    embed.add_field(name=f"Roles ({len(roles)})",value=" | ".join(role_names) ,inline = False)
+    embed.add_field(name="Joined at",value=joined_at)
+    embed.add_field(name="Created at",value=created_at)
+    
+    return embed
+
+def avatar_command(ctx,member):
+    embed = discord.Embed(colour=member.colour, 
+                          title = f"Avatar info of {member.name}",
+                          url = str(member.avatar_url),
+                          timestamp=ctx.message.created_at)
+
+    
+
+    embed.set_image(url=member.avatar_url)
+    embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+    
+    return embed
 class Utility(commands.Cog):
 
     def __init__(self, client):
@@ -60,43 +100,30 @@ class Utility(commands.Cog):
         await ctx.send(embed = embed)
    
     #*Check
+       
     @commands.command(aliases = ["about"])
     async def check(self,ctx, member: discord.Member):
-        
-        roles = [role for role in member.roles]
-        role_names = []
-        for role in roles:
-            role_names +=[role.mention]
-        joined_at = member.joined_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
-        created_at = member.created_at.strftime("%a, %d %B %Y %H:%M:%S UTC")
-        
-        embed = discord.Embed(colour=member.colour, timestamp=ctx.message.created_at)
-
-        embed.set_author(name=f"User info of {member.name}")
-        embed.set_thumbnail(url=member.avatar_url)
-        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
-        embed.add_field(name="ID: ",value=member.id)
-        embed.add_field(name="Guild's Nickname: ",value=member.nick)
-      
-        embed.add_field(name="Top role: ",value=member.top_role.mention)
-        embed.add_field(name=f"Roles ({len(roles)})",value=" | ".join(role_names) ,inline = False)
-        embed.add_field(name="Joined at",value=joined_at)
-        embed.add_field(name="Created at",value=created_at)
-        
-        await ctx.send(embed=embed)
+        embed = check_command(ctx,member)
+        await ctx.send(embed=embed) 
+       
+    @check.error
+    async def check_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            member =  ctx.author
+            embed = check_command(ctx,member)
+            await ctx.send(embed=embed) 
+            
+    #*AVATAR    
     
-    #*AVATAR
     @commands.command(aliases = ["av"])
     async def avatar(self,ctx,member: discord.Member ):
-        if not member:
-            member = ctx.author
-        embed = discord.Embed(colour=member.colour, timestamp=ctx.message.created_at)
-
-        embed.set_author(name=f"Avatar info of {member.name}")
-        embed.set_image(url=member.avatar_url)
-        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=avatar_command(ctx,member))
         
-        await ctx.send(embed=embed)
+    @avatar.error
+    async def avatar_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            member =  ctx.author
+            await ctx.send(embed=avatar_command(ctx,member))
 
 
     #* HELP

@@ -33,6 +33,7 @@ class Music(commands.Cog):
 
     def join_list(self, ls):
         return " ".join(ls)
+    
 
     @commands.command(aliases=['q', 'que'])
     async def queue(self, ctx, *query_arg):
@@ -235,8 +236,8 @@ class Music(commands.Cog):
             if file.endswith(".mp3"):
                 os.rename(file, 'song.mp3')
 
-        embed = discord.Embed(description="Now playing",
-                              color=discord.Colour.magenta())
+        embed = discord.Embed(title="Now playing",
+                              color=discord.Colour.magenta(), url = url)
         embed.set_author(name="Me!Me!Me!",
                          icon_url=self.client.user.avatar_url)
         embed.set_thumbnail(url=self.music_logo)
@@ -293,7 +294,7 @@ class Music(commands.Cog):
             print("Stop failed")
             await ctx.send(">>> Ya know to stop stuff, stuff also needs to be playing first.")
 
-    @commands.command(aliases=['n', 'sk'])
+    @commands.command(aliases=['n', 'sk', 'skip'])
     async def next(self, ctx):
         voice = get(self.client.voice_clients, guild=ctx.guild)
 
@@ -310,7 +311,7 @@ class Music(commands.Cog):
         try:
             channel = ctx.message.author.voice.channel
         except:
-            ctx.send(
+            await ctx.send(
                 ">>> You can only make me leave a voice channel if you are in that very voice channel, complex shit, I know.")
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
