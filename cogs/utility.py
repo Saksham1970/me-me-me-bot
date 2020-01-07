@@ -3,6 +3,9 @@ from discord.ext import commands
 import json
 import asyncio
 from datetime import datetime
+import imp, os
+imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
+import general as gen
 
 #! RECALLING FUNCTIONS
 def check_command(ctx,member):
@@ -128,9 +131,9 @@ class Utility(commands.Cog):
 
     #* HELP
    
-    @commands.group()
-    async def help(self, ctx):
-        if ctx.invoked_subcommand is None:
+    @commands.command()
+    async def help(self, ctx, subfield=""):
+        if subfield == "":
             help = discord.Embed(
                 colour  = discord.Colour.from_rgb(255,50,150),
                 title = "ME! HELP {SUBFIELD}",
@@ -148,100 +151,30 @@ class Utility(commands.Cog):
             help.add_field(name=":iphone: **PHONE**",value = 'PHONE SIMULATOR 2019.')
 
             help.add_field(name = ":robot: **ADMINISTRATIVE**", value = 'Commands we Admins have. HAHAHA')
-            await ctx.send(embed = help)
-    
-    @help.command()
-    async def administrator(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":robot: **ADMINISTRATIVE**",
-                  description = "Commands we Admins have. HAHAHA"
-              )
-        help.add_field(name = "`ENABLE`(Extension)", value = 'Enable a set of commands.')
-        help.add_field(name = "`DISABLE`(Extension)", value = 'Spank a set of commands.')
-        help.add_field(name = "`RELOAD`(Extension)", value = 'Reload a set of commands and hope they work.')
-        
-        await ctx.send(embed = help)
-    @help.command()
-    async def phone(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":iphone: **PHONE**",
-                  description = "PHONE SIMULATOR 2019."
-              )
-        help.add_field(name = "`PHONE`", value = 'Shows your Phone.')
-        help.add_field(name = "`PHONE COLOUR`(Place) (COLOUR in R G B)", value = "Changes wallpaper and body's colour.")
-        help.add_field(name = "`PHONE TYPE`(Type)", value = 'Well you can at least get new phones in this virtual world.')
-        
-        await ctx.send(embed = help)
-    @help.command()
-    async def testing(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":spy: **TESTING**",
-                  description = "TESTING 123."
-              )
-        help.add_field(name = "`ROLES`", value = 'Shows all your WORTHLESS roles.')
-        await ctx.send(embed = help)
+            
+        else:  
+            commands_info = gen.db_receive("commands")
+            commands_info: dict()
+            
+            if subfield in commands_info:
+                subfield_info = commands_info[subfield]
+                subfield_info: dict()
+            else:
+                await ctx.send(">>> That set of commands doesn't even exist.")
+                return
+            
+            emoji = subfield_info["emoji"]
+            name = subfield_info["name"]
+            desc = subfield_info["description"]
+            
+            help = discord.Embed(
+                colour  = discord.Colour.from_rgb(255,50,150),
+                title = f"{emoji} **{name}**",
+                description = f"{desc}")
 
-    @help.command()
-    async def immortal(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":ghost: **IMMORTAL COMMANDS**",
-                  description = "These commands are not for some puny mortals, Only Immortal beings possess these commands."
-              )
-        help.add_field(name = "`LEVEL` (Member) (Level)", value = 'This is a MEE6 exclusive command, no puny mortal can use this.')
-        help.add_field(name = "`ADMIN`", value = 'This is a top secret command, no using this.')
-        help.add_field(name = "`STATS`", value = 'Shows stats of all the ACTIVE PEOPLE WHO HAVE NO LIFE.')
-        help.add_field(name = "`RECORD_STATS`", value = 'Records stats of all the FUCKING SLAVES OF THIS SERVER.')
-        await ctx.send(embed = help)
-
-
-    #?
-    #? FUN
-    #?
-
-    @help.command()
-    async def fun(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":grin:  **FUN**",
-                  description = "These commands will make your day great."
-              )
-        help.add_field(name = "`DIX` [Penis, Dicc, Peepee, Dick]", value = 'Well, i calculate your peepee with my special MEASURING STICK that goes in ME! ass.')
-        help.add_field(name = "`QUES` [8ball, _8ball, Question] (Question)", value = 'I have answers to all your questions in this GOD DAMN WORLD.')
-        help.add_field(name = "`MEME` {Subreddit} {Amount} {Type}", value = 'Get some fresh memes, you insolent prick.')
-        help.add_field(name = "`EMOJI` [Emo] (Emoji){Amount}", value = 'Returns the emoji or maybe not. ')
-        await ctx.send(embed = help)
-
-    #?
-    #? UTILITY
-    #?
-
-    @help.command()
-    async def utility(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":tools: **UTILITY**",
-                  description = "These commands are of great UTILITY."
-              )
-        help.add_field(name = "`HELP` {Subfield}", value = 'Shows this MESSAGE. ')
-        help.add_field(name = "`CLEAR` {Amount}", value = 'I can delete the evidence of a bully, no one shall know. ')
-        help.add_field(name = "`INFO`", value = 'Lemme tell you about ME!!!')
-        help.add_field(name = "`PING`", value = 'It really means nothing, but well it tells the DAMN PING.')
-        await ctx.send(embed = help)
-
-    @help.command()
-    async def currency(self,ctx):
-        help = discord.Embed(
-                  colour  = discord.Colour.from_rgb(255,50,150),
-                  title = ":moneybag:  **CURRENCY**",
-                  description = "Money Money Money Money !!!"
-              )
-        help.add_field(name = "`BET` (Amount)", value = 'Well, this is the only fun part, BET, hail KAKEGURUI.')
-        help.add_field(name = "`BANK`", value = ' When you are broke, cry in front of the GOVT. and get some loan to use in a game which will have no impact on your true irl broke ass.')
-        help.add_field(name = "`SOULS`", value = 'Just the balance of your souls. THATS IT.')
+            for field,info in subfield_info["fields"].items(): 
+                help.add_field(name = info["name"], value = info["value"])
+                
         await ctx.send(embed = help)
         
 def setup(client):

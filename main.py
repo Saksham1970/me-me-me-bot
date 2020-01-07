@@ -144,4 +144,5 @@ async def on_command_error(ctx, error):
 
 
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
+
 client.run(TOKEN)
