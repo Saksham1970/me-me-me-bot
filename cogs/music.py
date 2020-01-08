@@ -14,6 +14,40 @@ from lxml import etree
 import shutil
 
 
+def url_get(query):
+    is_url = query.startswith("https://")
+
+    if not is_url:
+        query_string = urllib.parse.urlencode({"search_query": query}) #? what is dis
+        html_content = urllib.request.urlopen(
+            "http://www.youtube.com/results?" + query_string)
+        search_results = re.findall(            #? whats dis
+            r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+        url = "http://www.youtube.com/watch?v=" + search_results[0]
+    else:
+        url = query
+    return url
+
+def download(url,name,path):
+    queue_path = os.path.abspath(f"{path}\{name}.%(ext)s")
+    ydl_opts = {
+            'format': 'bestaudio/best',
+            'quiet': True,
+            'outtmpl': queue_path,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        print("Downloading stuff now\n")
+        ydl.download([url])
+
+
+
+
 class Music(commands.Cog):
 
     queues = {}
@@ -24,12 +58,12 @@ class Music(commands.Cog):
 
     def get_title(self, url: str()):
         youtube = etree.HTML(urllib.request.urlopen(url).read())
-        video_title = youtube.xpath("//span[@id='eow-title']/@title")
+        video_title = youtube.xpath("//span[@id='eow-title']/@title")       #? whats dis
 
         return "".join(video_title)
 
     def get_thumbnail(self, url: str()):
-        return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]
+        return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]      #? whats dis
 
     def join_list(self, ls):
         return " ".join(ls)
@@ -117,7 +151,7 @@ class Music(commands.Cog):
         else:
             voice = await channel.connect()
 
-        await voice.disconnect()
+        await voice.disconnect()            #? whats dis
 
         if voice and voice.is_connected():
             await voice.move_to(channel)
@@ -176,24 +210,13 @@ class Music(commands.Cog):
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
 
-        if not(voice and voice.is_connected()):
+        if not(voice and voice.is_connected()):                 #? no check for the person to be in the voice
             await ctx.invoke(self.client.get_command("join"))
 
         query = self.join_list(query_arg)
-        is_url = query.startswith("https://")
-
-        if not is_url:
-            query_string = urllib.parse.urlencode({"search_query": query})
-            html_content = urllib.request.urlopen(
-                "http://www.youtube.com/results?" + query_string)
-            search_results = re.findall(
-                r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
-            url = "http://www.youtube.com/watch?v=" + search_results[0]
-        else:
-            url = query
-
+        url = url_get(query)
         song_there = os.path.isfile("song.mp3")
-
+        
         try:
             if song_there:
                 os.remove("song.mp3")
@@ -213,28 +236,12 @@ class Music(commands.Cog):
             print("No old queue folder")
 
         await ctx.send(">>> Getting everything ready, playing audio soon")
+        
+        download(url,"song",".")
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
 
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'quiet': True,
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        }
-
-        try:
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                print("Downloading stuff now\n")
-                ydl.download([url])
-        except:
-            pass
-        for file in os.listdir("./"):
-            if file.endswith(".mp3"):
-                os.rename(file, 'song.mp3')
+       
 
         embed = discord.Embed(title="Now playing",
                               color=discord.Colour.magenta(), url = url)
@@ -320,8 +327,35 @@ class Music(commands.Cog):
             await voice.disconnect()
             await ctx.send(f">>> Left ```{channel}```")
 
-        else:
+        else:  
             await ctx.send(">>> I cannot leave a voice channel I have not joined, thought wouldn't need to explain basic shit like this.")
+            
+    @commands.command(aliases=["dnld"])
+    async def download(self, ctx, *query_arg):
+        query = self.join_list(query_arg)
+        url = url_get(query)
+        embed = discord.Embed(title="Now downloading",
+                              color=discord.Colour.dark_purple(), url=url)
+        embed.set_author(name="Me!Me!Me!",
+                         icon_url=self.client.user.avatar_url)
+        embed.set_thumbnail(url=self.music_logo)
+        embed.set_footer(text=f"Requested By: {ctx.message.author.display_name}",
+                         icon_url=ctx.message.author.avatar_url)
+        embed.set_image(url=self.get_thumbnail(url))
+        embed.add_field(name="**  **", value=f"**{self.get_title(url)}**")
+        
+        await ctx.send(embed=embed)
+        
+        song_there = os.path.isfile("dnld.mp3")
+        if song_there:
+            os.remove("dnld.mp3")
+            
+        download(url,"dnld",".")
+        
+                
+        mp3 = discord.File(f"./dnld.mp3", filename=self.get_title(url)+".mp3")
+        
+        await ctx.channel.send(file=mp3)
 
 
 def setup(client):
