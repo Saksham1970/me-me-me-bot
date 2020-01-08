@@ -133,32 +133,32 @@ class Utility(commands.Cog):
    
     @commands.command()
     async def help(self, ctx, subfield=""):
+        
+        commands_info = gen.db_receive("commands")
+        commands_info: dict()
+        inline_threshold = 45
+        
+        
         if subfield == "":
+            
             help = discord.Embed(
                 colour  = discord.Colour.from_rgb(255,50,150),
                 title = "ME! HELP {SUBFIELD}",
                 description = "This shows all commands. `PREFIX: ME! , EPIC`  `[]: Aliases` `{}: Optional Arguments` `(): Mandatory Arguments`"
             )
             
-            help.add_field(name = ":tools: **UTILITY**", value = 'These commands are of great UTILITY.')
-            help.add_field(name = ":moneybag:  **CURRENCY**", value = 'Money Money Money Money !!!')
-            help.add_field(name = ":grin:  **FUN**", value = 'These commands will make your day great.')
-            help.add_field(name = ":ghost: **IMMORTAL COMMANDS**", value = 'These commands are not for some puny mortals, Only Immortal beings possess these commands.', inline = False)
-
-            help.add_field(name=":spy: **TESTING**",value = 
-            "TESTING 1 2 3."
-            )
-            help.add_field(name=":iphone: **PHONE**",value = 'PHONE SIMULATOR 2019.')
-
-            help.add_field(name = ":robot: **ADMINISTRATIVE**", value = 'Commands we Admins have. HAHAHA')
+            for info in commands_info:
+                emoji = commands_info[info]["emoji"]
+                name = commands_info[info]["name"]
+                
+                
+                help.add_field(name = f"{emoji} **{name}**", value = f'>>> `ME! HELP {info.upper()}`')
             
         else:  
-            commands_info = gen.db_receive("commands")
-            commands_info: dict()
-            
             if subfield in commands_info:
                 subfield_info = commands_info[subfield]
                 subfield_info: dict()
+            
             else:
                 await ctx.send(">>> That set of commands doesn't even exist.")
                 return
@@ -167,13 +167,18 @@ class Utility(commands.Cog):
             name = subfield_info["name"]
             desc = subfield_info["description"]
             
+            inline_threshold = 60
+           
             help = discord.Embed(
                 colour  = discord.Colour.from_rgb(255,50,150),
                 title = f"{emoji} **{name}**",
                 description = f"{desc}")
 
-            for field,info in subfield_info["fields"].items(): 
-                help.add_field(name = info["name"], value = info["value"])
+            for field in subfield_info["fields"].values(): 
+                if len(desc) < inline_threshold:
+                    help.add_field(name = field["name"], value =field["value"])
+                else:
+                    help.add_field(name = field["name"], value =field["value"], inline = False)
                 
         await ctx.send(embed = help)
         
