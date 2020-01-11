@@ -138,7 +138,7 @@
 
         "record_stats":
         {
-        "name" : "EMOJI` [Emo] (Emoji){Amount}",
+        "name" : "`EMOJI` [Emo] (Emoji){Amount}",
         "value" : "Returns the emoji or maybe not."
         }
     }
@@ -239,7 +239,7 @@
 
         "stop":
         {
-        "name" : "`STOP` [st]",
+        "name" : "`STOP` [st][yamero]",
         "value" : "Stops the current music AND clears the current queue."
         },
 
@@ -251,9 +251,28 @@
 
         "queue":
         {
-        "name" : "`QUEUE (SEARCH TERMS / URL)` [q, que]",
-        "value" : "Queues the provided song at the end of the current queue."
+        "name" : "`QUEUE` {Subcommands} [q]",
+        "value" : "Shows the current queue."
         },
+
+
+        "queue remove":
+        {
+          "name":"`QUEUE REMOVE` (QUEUE MEMBER)",
+          "value":"Removes the Queue member."
+        },
+	"queue replace":
+        {
+          "name":"`QUEUE REPLACE` (QUEUE MEMBER 1)(QUEUE MEMBER 2)  [move] ",
+          "value":"Replaces two queue members."
+        },
+
+        "queue now":
+        {
+          "name":"`QUEUE NOW` (QUEUE MEMBER)",
+          "value":"Plays a queue member NOW."
+        },
+        
 
         "join":
         {

@@ -59,21 +59,22 @@ def commit(sp_msg: str()):
 def reset():
     os.rename("./Database/gothy", "./Database/.git")
 
-    repo = Repo("./Database/.git")
-    origin = repo.remote(name="origin")
-    origin.pull()
-
     g = git.Git("./Database")
-    print("Pulled Database Successfully")
-    os.rename("./Database/.git", "./Database/gothy")
-
-"""     g.execute("git stash")
+    g.execute("git stash")
 
     try:
         g.execute("git stash drop")
     except:
         pass
- """
+ 
+    repo = Repo("./Database/.git")
+    origin = repo.remote(name="origin")
+    origin.pull()
+
+ 
+    print("Pulled Database Successfully")
+    os.rename("./Database/.git", "./Database/gothy")
+ 
 
 def permu(strs):
     if len(strs) == 1:
