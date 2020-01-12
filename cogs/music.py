@@ -53,7 +53,7 @@ class Music(commands.Cog):
 
     def download_music(self,url,name,path,mtype):
 
-        queue_path = os.path.abspath(f"{path}/{name}.%(ext)s")
+        queue_path = os.path.abspath(f"{path}/{name}.{mtype}")
         ydl_opts = {
                 'format': 'bestaudio/best',
                 'quiet': True,
@@ -68,8 +68,10 @@ class Music(commands.Cog):
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 print("Downloading stuff now\n")
                 ydl.download([url])
-        except:
+        except Exception as e:
+            print(e)
             pass
+        return queue_path
 
     @commands.command()
     async def join(self, ctx):
@@ -77,20 +79,26 @@ class Music(commands.Cog):
         try:
             channel = ctx.message.author.voice.channel
         except:
-            pass
+            await ctx.send("You should be in VC dumbo.")
+            return False
        
         voice = get(self.client.voice_clients, guild=ctx.guild)
-       
         if not voice:
             voice = await channel.connect()
             await ctx.send(f">>> Joined ```{channel}```")
+            return True
+        elif ctx.author in voice.channel.members:
+            return True
+        
         elif voice and len(voice.channel.members)==1:
             await voice.move_to(channel)
             await ctx.send(f">>> Joined ```{channel}```")
+            return True
         
-        elif ctx.author not in voice.channel.members:
+        
+        else:
             await ctx.send("I am already connected to a voice channel and someone is listening to the songs. Join {voice.channel.name}")
-        
+            return False
     @commands.command()
     async def play(self, ctx, *,query):
 
@@ -101,18 +109,16 @@ class Music(commands.Cog):
             if length > 1:
 
                 
-                first_file = os.listdir(DIR)[0]
-                now = int(first_file[:-5][4:])
-                mnext = now+1
-                print(now)
-                os.remove("./Queue/" + f"song{now}.webm")
+        
+        
+                os.remove(self.queues[0][1])
                 self.queues.pop(0)
                 
                 print("Song done, playing next queue \n")
                 print(f"Songs still in queue: {still_q}")
 
 
-                voice.play(discord.FFmpegPCMAudio(f".\Queue\song{mnext}.webm"),
+                voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
                                after=lambda e: check_queue())
                 voice.source = discord.PCMVolumeTransformer(voice.source)
                 voice.source.volume = 0.4
@@ -125,7 +131,8 @@ class Music(commands.Cog):
             
        
   
-        await ctx.invoke(self.client.get_command("join"))
+        if not (await ctx.invoke(self.client.get_command("join"))):
+            return
         
         url = self.url_get(query)
 
@@ -159,27 +166,26 @@ class Music(commands.Cog):
                          icon_url=ctx.message.author.avatar_url)
         embed.add_field(name=f"**#{q_num}**",
                         value=str(self.get_title(url)))
-        embed.set_image(url=str(self.pget_thumbnail(url)))
+        embed.set_image(url=str(self.get_thumbnail(url)))
         embed.set_thumbnail(url=self.music_logo)
         await ctx.send(embed=embed)
-
-        
-        self.queues+= [self.get_title(url)]
+        if self.queues == []:
+            l=1
+        else:
+            l = int(self.queues[-1][1].split("\\")[-1].split(".")[0][4:])+1
+      
 
         print("Song added to queue\n")
-        l = len(self.queues)
-        self.download_music(url,f"song{l}","./Queue","webm")
-
+        
+        path=self.download_music(url,f"song{l}","./Queue","webm")
+        self.queues +=[[url,path]]
         print("Downloaded")
 
-        DIR = os.path.abspath(os.path.realpath("./Queue"))
-        first_file = os.listdir(DIR)[0]
-        
-        
+                
 
         if voice and (not voice.is_playing()):
-            print(first_file,"is playing.")
-            voice.play(discord.FFmpegPCMAudio(f"./Queue/{first_file}"),
+            print(self.queues[0][1],"is playing.")
+            voice.play(discord.FFmpegPCMAudio(path),
                     after=lambda e: check_queue())
             voice.source = discord.PCMVolumeTransformer(voice.source)
             voice.source.volume = 0.4
@@ -197,7 +203,7 @@ class Music(commands.Cog):
             
             for i in range(1,len(self.queues)+1):
                 
-                embed.add_field(name="** **", value=f"{i}. {self.queues[i-1]}",inline=False)
+                embed.add_field(name="** **", value=f"{i}. {self.get_title(self.queues[i-1][0])}",inline=False)
             
             await ctx.send(embed=embed)
 
@@ -233,6 +239,7 @@ class Music(commands.Cog):
             return
             
         if remove >1 and remove <= len(self.queues):
+            os.remove(f'./Queue/{self.queues[remove-1][1]}')
             self.queues.pop(remove-1)
             await ctx.send("DONE BOSS")
         else:
@@ -367,17 +374,17 @@ class Music(commands.Cog):
             i=1
         else:
             last_file = files[-1]
-            i=int(last_file[:-6][4:])+1
+            i=int(last_file.split(".")[0][4:])+1
         
                    
-        self.download_music(url,f"dnld{i}","./Download","webm")
+        path=self.download_music(url,f"dnld{i}","./Download","webm")
         print("Downloaded")
         
                 
-        mp3 = discord.File(f"./Download/dnld{i}.webm", filename=self.get_title(url)+".mp3")
+        mp3 = discord.File(path, filename=self.get_title(url)+".mp3")
         
         await ctx.channel.send(file=mp3)
-        os.remove(f"./Download/dnld{i}.webm")
+        os.remove(path)
 
 
 def setup(client):
