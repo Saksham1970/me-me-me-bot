@@ -21,6 +21,8 @@ import shutil
 class Music(commands.Cog):
 
     queues = []
+    loop_song = False
+    skip_song = False
     music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
 
     def __init__(self, client):
@@ -108,11 +110,10 @@ class Music(commands.Cog):
             still_q = length - 1
             if length > 1:
 
-                
-        
-        
-                os.remove(self.queues[0][1])
-                self.queues.pop(0)
+                if ((not self.loop_song) or (self.skip_song)):
+                    os.remove(self.queues[0][1])
+                    self.queues.pop(0)
+                    self.skip_song = False
                 
                 print("Song done, playing next queue \n")
                 print(f"Songs still in queue: {still_q}")
@@ -189,6 +190,15 @@ class Music(commands.Cog):
                     after=lambda e: check_queue())
             voice.source = discord.PCMVolumeTransformer(voice.source)
             voice.source.volume = 0.4
+
+    @commands.command(aliases=['lp'])
+    async def loop(self, ctx):
+        if self.loop_song:
+            await ctx.send(">>> **NOT Looping current song now**")
+            self.loop_song = False
+        else:
+            self.loop_song = True
+            await ctx.send(">>> **Looping current song now**")
             
     @commands.group(aliases=['q'])
     async def queue(self, ctx):
@@ -332,6 +342,7 @@ class Music(commands.Cog):
             return
         if voice and voice.is_playing():
             print("Playing next song")
+            self.skip_song = True
             voice.stop()
             await ctx.send(">>> ***Song skipped.***")
         else:
