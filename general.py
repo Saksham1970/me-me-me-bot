@@ -60,9 +60,10 @@ def reset():
     os.rename("./Database/gothy", "./Database/.git")
 
     g = git.Git("./Database")
-    g.execute("git stash")
+    
 
     try:
+        g.execute("git stash")
         g.execute("git stash drop")
     except:
         pass

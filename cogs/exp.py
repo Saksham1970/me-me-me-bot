@@ -17,37 +17,68 @@ class exp(commands.Cog):
         self.client = client
         self.exp_info = gen.db_receive('exp')
         self.give_exp.start()
+    
+    def cog_unload(self):
+        self.give_exp.cancel()
         
     def gen_xp(self):
         return randint(15, 25)
 
-    @tasks.loop(seconds=45)
+    @tasks.loop(minutes =1)
     async def give_exp(self):
-        for member in self.exp_info.values():
-            if member["active"]:
-                member["xp"] += self.gen_xp()
-                member["active"] = False
-                member["level"] = self.get_level(member["xp"])
-                member["rank"] = self.get_designation(member["level"])
-                member["rel_bar"] = 5 * (member["level"] ** 2) + 50 * member["level"] + 100 
-                member["rel_xp"] = member["xp"] - member["rel_bar"]
-                
-        gen.db_update("exp", self.exp_info)
+    
+        for member in self.exp_info:
+            
+            if self.exp_info[member]["active"]:
+                self.exp_info[member]["xp"] += self.gen_xp()
+                self.exp_info[member]["active"] = False
 
-    def rank_creation(self, ctx , member,levels_info , roles):
-        mem_info =levels_info[str(member.id)]
+                self.exp_info[member]["rel_bar"] = 5 * (self.exp_info[member]["level"] ** 2) + 50 * self.exp_info[member]["level"] + 100 
+                self.exp_info[member]["rel_xp"] += self.gen_xp()
+
+                if self.exp_info[member]["rel_xp"] >= self.exp_info[member]["rel_bar"]:
+                    self.exp_info[member]["rel_xp"] -= self.exp_info[member]["rel_bar"]
+                    self.exp_info[member]["level"] += 1
+                    channel = self.client.get_channel(629718364511797259)
+                    send = f'Congrats {self.exp_info[member]["name"]}, now you are of level {self.exp_info[member]["level"]} :middle_finger: .'
+                    await channel.send(send)
+            
+                temp = self.exp_info[member]["role"]
+                self.exp_info[member]["role"]=self.get_designation(self.exp_info[member]["level"])
+                
+                if temp != self.exp_info[member]["role"]:
+                    channel = self.client.get_channel(629718364511797259)
+                    send = f'Congrats {self.exp_info[member]["name"]}, now you are {self.exp_info[member]["role"]} :middle_finger: .'
+                    await channel.send(send)
+                 
+        xplist=[]
+        for i in self.exp_info:
+            xplist+=[[self.exp_info[i]["xp"],i]]
+       
+        xplist = sorted(xplist, key=lambda x: x[0])
+        for i in range(len(xplist)):
+            self.exp_info[xplist[i][1]]["rank"]= len(xplist) - i
+            
+
+
+        gen.db_update("exp", self.exp_info)
+ 
+    def rank_creation(self, ctx , member):
+
+        try:
+            mem_info = self.exp_info[str(member.id)]
+        except:
+            mem_info= self.user_entry(member)
         level = mem_info["level"]
         rank = mem_info["rank"]
         response = requests.get(member.avatar_url)
         avatar_photo = Image.open(io.BytesIO(response.content))
     
-
         size = (600,600)
         avatar_photo = avatar_photo.resize(size)
         mask = Image.new('L', size, 0)
         draw = ImageDraw.Draw(mask) 
         draw.ellipse((0, 0) + size, fill=255)
-
 
         avatar_photo = ImageOps.fit(avatar_photo, mask.size, centering=(0.5, 0.5))
         avatar_photo.putalpha(mask)
@@ -59,14 +90,14 @@ class exp(commands.Cog):
         arc_start = -90
         arc_end = arc_length-90
 
-        a = list(roles.keys())
+        a = list(self.roles.keys())
     
         for i in range(len(a)):
-            if level<roles[a[i]][0]:
+            if level<self.roles[a[i]][0]:
                 role = a[i-1]
-                role_cap,role_colour = roles[a[i-1]]
+                role_cap,role_colour = self.roles[a[i-1]]
                 role_colour = role_colour[:]
-                role_next,role_next_colour = roles[a[i]]
+                role_next,role_next_colour = self.roles[a[i]]
                 break
         else:
             role = "Council of Numericon"
@@ -132,7 +163,8 @@ class exp(commands.Cog):
         member_info["name"] = user.name
         member_info["xp"] = 0
         member_info["level"] = 1
-        member_info["rank"] = "Prostitute"
+        member_info["rank"] = 0
+        member_info["role"] = "Prostitute"
         member_info["messages"] = 1
         member_info["rel_bar"] = 100
         member_info["rel_xp"] = 0
@@ -142,25 +174,16 @@ class exp(commands.Cog):
 
         return member_info
 
-    def get_level(self, exp: int()):
-        level_found = False
-
-        i = 0
-        while not level_found:
-            exp_req = 5 * (i ** 2) + 50 * i + 100
-
-            level_found = exp_req <= exp
-            i += 1
-
-        return i + 1
+  
 
 
     def get_designation(self, level: int()):
-        for i in range(len(self.roles.values())):
-            if self.roles.values()[i][0] >= level:
+        a = list(self.roles.values())
+        for i in range(len(a)):
+            if a[i][0] >= level:
                 break
 
-        rel_role = self.roles.values()[i - 1][0]
+        rel_role = a[i - 1][0]
 
         for role,level in self.roles.items():
             if level[0] == rel_role:
@@ -185,6 +208,7 @@ class exp(commands.Cog):
             self.exp_info[message.author.id] = member_info
           
         gen.db_update("exp", self.exp_info)
+
 
 
     @commands.command()
@@ -218,12 +242,11 @@ class exp(commands.Cog):
                 member = ctx.author
             else:
                 member = member1
-            self.rank_creation(ctx,member,self.exp_info,roles)        
-       # thrd = Thread(target = self.rank_creation,args=(ctx,member,self.exp_info,self.roles))
-       # thrd.start()
-       # thrd.join()
+              
+        thrd = Thread(target = self.rank_creation,args=(ctx,member))
+        thrd.start()
+        thrd.join()
         await ctx.send(file = discord.File("rank.png"))
-
 
 
 def setup(client):

@@ -103,7 +103,7 @@ class Music(commands.Cog):
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 print("Downloading stuff now\n")
                 ydl.download([url])
-        except Exception as e:
+        except :
             pass
         return queue_path
 
