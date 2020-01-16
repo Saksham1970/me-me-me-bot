@@ -45,7 +45,7 @@
 
         "colour":
         {
-        "name" : "PHONE COLOUR`(Place) (COLOUR in R G B)",
+        "name" : "`PHONE COLOUR`(Place) (COLOUR in R G B)",
         "value" : "Changes wallpaper and body's colour."
         },
 
@@ -120,7 +120,7 @@
     {
         "level":
         {
-        "name" : "``DIX` [Penis, Dicc, Peepee, Dick]",
+        "name" : "DIX` [Penis, Dicc, Peepee, Dick]",
         "value" : "Well, i calculate your peepee with my special MEASURING STICK that goes in ME! ass."
         },
 
@@ -272,8 +272,17 @@
           "name":"`QUEUE NOW` (QUEUE MEMBER)",
           "value":"Plays a queue member NOW."
         },
-        
 
+        "loop":
+        {
+        "name" : "`LOOP` {On/Off}",
+        "value" : "Loops the current song, doesn't affect the skip command tho. If on/off not passed it will toggle it."
+        },
+        "restart":
+        {
+        "name" : "`RESTART`",
+        "value" : "Restarts the current song."
+        },
         "join":
         {
         "name" : "`JOIN`",

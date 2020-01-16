@@ -2,6 +2,10 @@ import discord
 import random
 import general as gen
 from discord.ext import commands
+import pytesseract
+import requests
+from PIL import Image
+import io
 
 class Fun(commands.Cog):
 
@@ -64,6 +68,27 @@ class Fun(commands.Cog):
     async def emoji_error(self,ctx,error):
       await ctx.send(">>> Are you an emoji? Perhaps.")
 
+
+    #! OCR
+    @commands.command()
+    async def ocr(self,ctx,im = ""):
+        if im =="":
+            await ctx.send("Enter a url.")
+            return
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+       
+        embed = discord.Embed(colour=discord.Colour.green(), timestamp=ctx.message.created_at)
+
+        response = requests.get(im)
+        img = Image.open(io.BytesIO(response.content))
+        text = pytesseract.image_to_string(img, lang="eng")
+
+        embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.set_image(url=im)
+        embed.add_field(name='Text',value=text)
+        await ctx.channel.purge(limit=2)
+        await ctx.send(embed=embed)
+        
 
 def setup(client):
     client.add_cog(Fun(client))

@@ -14,7 +14,7 @@ from lxml import etree
 import shutil
 
 
-
+from threading import Thread
 
 
 
@@ -25,8 +25,41 @@ class Music(commands.Cog):
     skip_song = False
     music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
 
+    def player(self,voice):
+        def check_queue():
+            DIR = os.path.abspath(os.path.realpath("./Queue"))
+            length = len(os.listdir(DIR))
+            still_q = length - 1
+            if length >= 1:
+                if ((not self.loop_song) or (self.skip_song)):
+                    os.remove(self.queues[0][1])
+                    self.queues.pop(0)
+                    self.skip_song = False
+                
+                print("Song done, playing next queue \n")
+                print(f"Songs still in queue: {still_q}")
+
+
+                voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
+                               after=lambda e: check_queue())
+                voice.source = discord.PCMVolumeTransformer(voice.source)
+                voice.source.volume = 0.4
+            else:
+                self.queues.clear()
+                #await ctx.send(">>> All songs played. No more songs to play.")   
+                print("Ending the queue")
+                return
+
+        print(self.queues[0][1],"is playing.")
+        voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
+                    after=lambda e: check_queue())
+        voice.source = discord.PCMVolumeTransformer(voice.source)
+        voice.source.volume = 0.4
+
     def __init__(self, client):
         self.client = client
+        self.skip_song = False
+        self.loop_song = False
 
     def get_title(self, url: str()):
         youtube = etree.HTML(urllib.request.urlopen(url).read())
@@ -71,7 +104,6 @@ class Music(commands.Cog):
                 print("Downloading stuff now\n")
                 ydl.download([url])
         except Exception as e:
-            print(e)
             pass
         return queue_path
 
@@ -85,10 +117,14 @@ class Music(commands.Cog):
             return False
        
         voice = get(self.client.voice_clients, guild=ctx.guild)
+        
         if not voice:
             voice = await channel.connect()
             await ctx.send(f">>> Joined ```{channel}```")
             return True
+        
+        
+
         elif ctx.author in voice.channel.members:
             return True
         
@@ -99,38 +135,11 @@ class Music(commands.Cog):
         
         
         else:
-            await ctx.send("I am already connected to a voice channel and someone is listening to the songs. Join {voice.channel.name}")
+            await ctx.send(f"I am already connected to a voice channel and someone is listening to the songs. Join {voice.channel.name}")
             return False
     @commands.command()
     async def play(self, ctx, *,query):
 
-        def check_queue():
-            DIR = os.path.abspath(os.path.realpath("./Queue"))
-            length = len(os.listdir(DIR))
-            still_q = length - 1
-            if length > 1:
-
-                if ((not self.loop_song) or (self.skip_song)):
-                    os.remove(self.queues[0][1])
-                    self.queues.pop(0)
-                    self.skip_song = False
-                
-                print("Song done, playing next queue \n")
-                print(f"Songs still in queue: {still_q}")
-
-
-                voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
-                               after=lambda e: check_queue())
-                voice.source = discord.PCMVolumeTransformer(voice.source)
-                voice.source.volume = 0.4
-            else:
-                self.queues.clear()
-                #await ctx.send("All songs played. No more songs to play.")   * PLEASE DO SOMETHING ABOUT THIS
-                print("Ending the queue")
-                return
-
-            
-       
   
         if not (await ctx.invoke(self.client.get_command("join"))):
             return
@@ -157,7 +166,8 @@ class Music(commands.Cog):
 
         q_num = len(self.queues)+1
               
-
+        title =str(self.get_title(url))
+        thumbnail =str(self.get_thumbnail(url))
        
         embed = discord.Embed(title="Song Added to Queue",      #TODO make a function
                               url=url, color=discord.Colour.blurple())
@@ -166,8 +176,8 @@ class Music(commands.Cog):
         embed.set_footer(text=f"Requested By: {ctx.message.author.display_name}",
                          icon_url=ctx.message.author.avatar_url)
         embed.add_field(name=f"**#{q_num}**",
-                        value=str(self.get_title(url)))
-        embed.set_image(url=str(self.get_thumbnail(url)))
+                        value=title)
+        embed.set_image(url=thumbnail)
         embed.set_thumbnail(url=self.music_logo)
         await ctx.send(embed=embed)
         if self.queues == []:
@@ -179,27 +189,43 @@ class Music(commands.Cog):
         print("Song added to queue\n")
         
         path=self.download_music(url,f"song{l}","./Queue","webm")
-        self.queues +=[[url,path]]
+        self.queues +=[[url,path,title,thumbnail]]
         print("Downloaded")
 
                 
 
-        if voice and (not voice.is_playing()):
-            print(self.queues[0][1],"is playing.")
-            voice.play(discord.FFmpegPCMAudio(path),
-                    after=lambda e: check_queue())
-            voice.source = discord.PCMVolumeTransformer(voice.source)
-            voice.source.volume = 0.4
-
+        if len(self.queues) == 1:
+            thrd = Thread(target=self.player, args=(voice,))
+            thrd.start()
+            
     @commands.command(aliases=['lp'])
-    async def loop(self, ctx):
-        if self.loop_song:
-            await ctx.send(">>> **NOT Looping current song now**")
-            self.loop_song = False
-        else:
+    async def loop(self, ctx,toggle = ""):
+        if toggle.lower() == "on":
             self.loop_song = True
             await ctx.send(">>> **Looping current song now**")
+
+        elif toggle.lower() == 'off':
+            self.loop_song = False
+            await ctx.send(">>> **NOT Looping current song now**")
+                
+        else:
             
+            if self.loop_song:
+                self.loop_song = False
+                await ctx.send(">>> **NOT Looping current song now**")
+                
+            else:
+                self.loop_song = True
+                await ctx.send(">>> **Looping current song now**")
+    @commands.command()
+    async def restart(self,ctx):
+        temp = self.loop_song
+        self.loop_song = True
+        voice = get(self.client.voice_clients, guild=ctx.guild)
+        voice.stop()
+        await asyncio.sleep(0.1)
+        self.loop_song = temp
+                
     @commands.group(aliases=['q'])
     async def queue(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -213,7 +239,7 @@ class Music(commands.Cog):
             
             for i in range(1,len(self.queues)+1):
                 
-                embed.add_field(name="** **", value=f"{i}. {self.get_title(self.queues[i-1][0])}",inline=False)
+                embed.add_field(name="** **", value=f"{i}. {self.queues[i-1][2]}",inline=False)
             
             await ctx.send(embed=embed)
 
@@ -231,11 +257,12 @@ class Music(commands.Cog):
             return
             
         if change1 >1 and change2>1 and change1 <= len(self.queues) and change2 <= len(self.queues):
+            await ctx.send(f">>> Switched the places of **{self.queues[change2-1]}** and **{self.queues[change1-1]}**")
             self.queues[change1-1],self.queues[change2-1]=self.queues[change2-1],self.queues[change1-1]
-            await ctx.send("DONE BOSS")
         else:
-            await ctx.send("Enter Numbers greater than 1.")
+            await ctx.send("The numbers you entered are just as irrelevant as your existence.")
             return
+
     @queue.command()
     async def remove(self,ctx,remove):
         voice = get(self.client.voice_clients, guild=ctx.guild)
@@ -249,12 +276,13 @@ class Music(commands.Cog):
             return
             
         if remove >1 and remove <= len(self.queues):
-            os.remove(f'./Queue/{self.queues[remove-1][1]}')
+            os.remove(self.queues[remove-1][1])
+            await ctx.send(f">>> Removed **{(self.queues[remove - 1][2])}** from the queue.")
             self.queues.pop(remove-1)
-            await ctx.send("DONE BOSS")
         else:
-            await ctx.send("Enter Numbers greater than 1.")
+            await ctx.send("The number you entered is just as irrelevant as your existence.")
             return
+
     @queue.command()
     async def now(self,ctx,change):
         voice = get(self.client.voice_clients, guild=ctx.guild)
@@ -271,7 +299,7 @@ class Music(commands.Cog):
             self.queues.pop(change-1)
             self.queues.insert(1,temp)
         else:
-            await ctx.send("Enter Numbers greater than 1.")
+            await ctx.send("The number you entered is just as irrelevant as your existence.")
             return
         await ctx.invoke(self.client.get_command("next"))
         
@@ -341,8 +369,8 @@ class Music(commands.Cog):
             await ctx.send("You are not even in the VC.")
             return
         if voice and voice.is_playing():
-            print("Playing next song")
             self.skip_song = True
+            print("Playing next song")
             voice.stop()
             await ctx.send(">>> ***Song skipped.***")
         else:
