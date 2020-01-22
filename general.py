@@ -13,6 +13,8 @@ status = ["Saksham's Son", 'Is Mayank', 'Who Is Gay']
 
 subreddits = ["memes", "dankmemes", "cursedcomments", "animemes"]
 
+cog_colours = {"exp":"cyan", "music":"green"}
+
 epic = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 
@@ -96,9 +98,12 @@ def permu(strs):
         return output
 
 
-def error_message(error):
+def error_message(error, color="white"):
+    color: str()
+
     init(convert=True)
-    print(Fore.BLACK + Back.WHITE + str(error))
+    cmd = f"print(Fore.BLACK + Back.{color.upper()} + str(error))"
+    exec(cmd)
     print(Fore.WHITE+Back.BLACK)
 
 

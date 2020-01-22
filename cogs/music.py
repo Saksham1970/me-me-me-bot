@@ -3,8 +3,9 @@ from discord.ext import commands
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from os import system
-import os
+import os, imp
 import youtube_dl
+from youtube_dl import YoutubeDL
 import asyncio
 import urllib.request
 import urllib.parse
@@ -12,6 +13,9 @@ import re
 import lxml
 from lxml import etree
 import shutil
+from colorama import init, Fore, Back, Style
+imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
+import general as gen
 
 
 from threading import Thread
@@ -25,19 +29,21 @@ class Music(commands.Cog):
     skip_song = False
     music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
 
+    log = lambda self, msg: gen.error_message(msg, gen.cog_colours["music"])
+
     def player(self,voice):
         def check_queue():
             DIR = os.path.abspath(os.path.realpath("./Queue"))
             length = len(os.listdir(DIR))
-            still_q = length - 1
-            if length >= 1:
-                if ((not self.loop_song) or (self.skip_song)):
-                    os.remove(self.queues[0][1])
-                    self.queues.pop(0)
-                    self.skip_song = False
-                
-                print("Song done, playing next queue \n")
-                print(f"Songs still in queue: {still_q}")
+            if ((not self.loop_song) or (self.skip_song)):
+                os.remove(self.queues[0][1])
+                self.queues.pop(0)
+                self.skip_song = False
+
+            if length > 0:
+                                
+                self.log(f"\nSong done, playing {self.queues[0][2]}")
+                self.log(f"Songs still in queue: {len(self.queues)}")
 
 
                 voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
@@ -47,10 +53,10 @@ class Music(commands.Cog):
             else:
                 self.queues.clear()
                 #await ctx.send(">>> All songs played. No more songs to play.")   
-                print("Ending the queue")
+                self.log("Ending the queue")
                 return
 
-        print(self.queues[0][1],"is playing.")
+        self.log(f"{self.queues[0][2]} is playing.")
         voice.play(discord.FFmpegPCMAudio(self.queues[0][1]),
                     after=lambda e: check_queue())
         voice.source = discord.PCMVolumeTransformer(voice.source)
@@ -62,9 +68,19 @@ class Music(commands.Cog):
         self.loop_song = False
 
     def get_title(self, url: str()):
-        youtube = etree.HTML(urllib.request.urlopen(url).read())
-        video_title = youtube.xpath("//span[@id='eow-title']/@title") 
-        return "".join(video_title)
+        ydl_opts = {
+                'format': 'bestaudio/best',
+                'quiet': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                }],
+            }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+            return info.get('title', None)
 
     def get_thumbnail(self, url: str()):
         return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]      
@@ -101,7 +117,7 @@ class Music(commands.Cog):
 
         try:
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                print("Downloading stuff now\n")
+                self.log("Downloading stuff now")
                 ydl.download([url])
         except :
             pass
@@ -156,10 +172,10 @@ class Music(commands.Cog):
             try:
                 Queue_folder = f"{os.getcwd()}/Queue"
                 if Queue_infile:
-                    print("removed old queue folder")
+                    self.log("removed old queue folder")
                     shutil.rmtree(Queue_folder)
             except:
-                print("No old queue folder")
+                self.log("No old queue folder")
 
         if not Queue_infile:
             os.mkdir("Queue")
@@ -186,11 +202,11 @@ class Music(commands.Cog):
             l = int(self.queues[-1][1].split("\\")[-1].split(".")[0][4:])+1
       
 
-        print("Song added to queue\n")
+        self.log("Song added to queue")
         
         path=self.download_music(url,f"song{l}","./Queue","webm")
         self.queues +=[[url,path,title,thumbnail]]
-        print("Downloaded")
+        self.log("Downloaded")
 
                 
 
@@ -312,11 +328,11 @@ class Music(commands.Cog):
             await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
             return
         if voice and voice.is_playing():
-            print("Player paused")
+            self.log("Player paused")
             voice.pause()
             await ctx.send(">>> Music Paused")
         else:
-            print("Pause failed")
+            self.log("Pause failed")
             await ctx.send(">>> Ya know to pause stuff, stuff also needs to be playing first.")
 
     @commands.command(aliases=['r', 'res'])
@@ -327,11 +343,11 @@ class Music(commands.Cog):
             return
         
         if voice and voice.is_paused():
-            print("Music resumed")
+            self.log("Music resumed")
             voice.resume()
             await ctx.send(">>> Resumed Music")
         else:
-            print("Resume failed")
+            self.log("Resume failed")
             await ctx.send(">>> Ya know to resume stuff, stuff also needs to be paused first.")
 
     @commands.command(aliases=['st','yamero'])
@@ -348,12 +364,12 @@ class Music(commands.Cog):
         Queue_infile = os.listdir("./Queue")
         
         if voice and voice.is_playing:
-            print("Player stopped")
+            self.log("Player stopped")
             voice.stop()
             await ctx.send(">>> Music stopped")
         
         else:
-            print("Stop failed")
+            self.log("Stop failed")
             await ctx.send(">>> Ya know to stop stuff, stuff also needs to be playing first.")
 
         if Queue_infile:
@@ -370,11 +386,11 @@ class Music(commands.Cog):
             return
         if voice and voice.is_playing():
             self.skip_song = True
-            print("Playing next song")
+            self.log("Playing next song")
             voice.stop()
             await ctx.send(">>> ***Song skipped.***")
         else:
-            print("Skip failed")
+            self.log("Skip failed")
             await ctx.send(">>> Wat you even trynna skip? There is ***nothing to*** skip, I am surrounded by idiots")
 
     @commands.command()
@@ -417,13 +433,15 @@ class Music(commands.Cog):
         
                    
         path=self.download_music(url,f"dnld{i}","./Download","webm")
-        print("Downloaded")
+        self.log("Downloaded")
         
                 
         mp3 = discord.File(path, filename=self.get_title(url)+".mp3")
         
         await ctx.channel.send(file=mp3)
         os.remove(path)
+
+    
 
 
 def setup(client):

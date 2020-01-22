@@ -6,17 +6,24 @@ imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.p
 import general as gen
 import requests
 import io
+import asyncio
 from threading import Thread
+from colorama import Fore, Back, Style, init
 from PIL import Image,ImageDraw,ImageOps,ImageFont
+
 
 class exp(commands.Cog):
     
-    roles = {"Prostitute":[0,[230, 126, 34]],"Rookie":[5,[153, 45, 34]],"Adventurer":[10,[173, 20, 87]],"Player":[25,[241, 196, 15]],"Hero":[50,[46, 204, 113]],"Council of Numericon":[85,[0, 255, 240]]}
+    roles = {"Prostitute":[0,[230, 126, 34]],"Rookie":[5,[153, 45, 34]],"Adventurer":[10,[173, 20, 87]],"Player":[25,[241, 196, 15]],"Hero":[50,[46, 204, 113]],"Council of Numericons":[85,[0, 255, 240]]}
     
     def __init__(self, client):
         self.client = client
         self.exp_info = gen.db_receive('exp')
+        
         self.give_exp.start()
+    log = lambda self, msg: gen.error_message(msg, gen.cog_colours["exp"])
+    
+
     
     def cog_unload(self):
         self.give_exp.cancel()
@@ -24,33 +31,91 @@ class exp(commands.Cog):
     def gen_xp(self):
         return randint(15, 25)
 
+    def get_level(self, exp):
+        info = {}
+
+        lvl_found = False
+        i = 0
+        total_xp_needed_now = 0
+        while not lvl_found:
+            total_xp_needed_now += ((5 * (i ** 2)) + (50 * i) + 100)
+            if exp < total_xp_needed_now:
+                lvl_found = True
+            else:
+                i += 1
+
+        rel_bar = (5 * (i ** 2) + 50 * i + 100)
+        rel_exp = exp  - self.total_exp_needed(i)    
+
+        info["level"] = i
+        info["rel_xp"] = rel_exp
+        info["rel_bar"] = rel_bar
+
+        return info
+
+
+    def total_exp_needed(self, lvl):
+        total_xp_needed = 0
+        for i in range(lvl):
+            total_xp_needed += ((5 * (i ** 2)) + (50 * i) + 100)
+
+        return total_xp_needed
+
     @tasks.loop(minutes =1)
     async def give_exp(self):
-    
+        self.log("\nRegular Check")
         for member in self.exp_info:
-            
             if self.exp_info[member]["active"]:
+                self.log(f"{self.exp_info[member]['name']}  is active.")
                 self.exp_info[member]["xp"] += self.gen_xp()
                 self.exp_info[member]["active"] = False
+                level_dicc=self.get_level(self.exp_info[member]["xp"])
+              
+                self.exp_info[member]["rel_xp"] =level_dicc["rel_xp"]
 
-                self.exp_info[member]["rel_bar"] = 5 * (self.exp_info[member]["level"] ** 2) + 50 * self.exp_info[member]["level"] + 100 
-                self.exp_info[member]["rel_xp"] += self.gen_xp()
-
-                if self.exp_info[member]["rel_xp"] >= self.exp_info[member]["rel_bar"]:
-                    self.exp_info[member]["rel_xp"] -= self.exp_info[member]["rel_bar"]
-                    self.exp_info[member]["level"] += 1
+                if level_dicc["level"] > self.exp_info[member]["level"]:
+                    self.exp_info[member]["level"] =level_dicc["level"]
+                    
+                    self.log(f"{self.exp_info[member]['name']} leveled up to level {self.exp_info[member]['level']}")
                     channel = self.client.get_channel(629718364511797259)
-                    send = f'Congrats {self.exp_info[member]["name"]}, now you are of level {self.exp_info[member]["level"]} :middle_finger: .'
+                   
+                    membob=channel.guild.get_member(int(member))
+                    rolename=self.exp_info[member]["role"]
+                    roles_list = membob.roles
+                    
+                    for role in roles_list:
+                        if str(role) in self.roles and str(role) != "Council of Numericons":
+                            await membob.remove_roles(role)
+                   
+                    roleob=discord.utils.get(channel.guild.roles, name=rolename)
+                    await membob.add_roles(roleob)  
+                
+                    send = f'Congrats {channel.guild.get_member(int(member)).mention}, now you are of level {self.exp_info[member]["level"]} :middle_finger: .'
                     await channel.send(send)
-            
+                    
+                self.exp_info[member]["rel_bar"] = level_dicc["rel_bar"]
+               
                 temp = self.exp_info[member]["role"]
                 self.exp_info[member]["role"]=self.get_designation(self.exp_info[member]["level"])
                 
                 if temp != self.exp_info[member]["role"]:
                     channel = self.client.get_channel(629718364511797259)
-                    send = f'Congrats {self.exp_info[member]["name"]}, now you are {self.exp_info[member]["role"]} :middle_finger: .'
+                    self.log(f"\n {self.exp_info[member]['name']} is now a {self.exp_info[member]['role']} .")
+                    membob=channel.guild.get_member(int(member))
+                    rolename=self.exp_info[member]["role"]
+                    roles_list = membob.roles
+                    
+                    for role in roles_list:
+                        if str(role) in self.roles and str(role) != "Council of Numericons":
+                            await membob.remove_roles(role)
+                   
+                    roleob=discord.utils.get(channel.guild.roles, name=rolename)
+                    await membob.add_roles(roleob)  
+                
+
+                    send = f'Congrats {membob.mention}, now you are {roleob.mention} :middle_finger: .'
                     await channel.send(send)
-                 
+    
         xplist=[]
         for i in self.exp_info:
             xplist+=[[self.exp_info[i]["xp"],i]]
@@ -58,9 +123,8 @@ class exp(commands.Cog):
         xplist = sorted(xplist, key=lambda x: x[0])
         for i in range(len(xplist)):
             self.exp_info[xplist[i][1]]["rank"]= len(xplist) - i
+
             
-
-
         gen.db_update("exp", self.exp_info)
  
     def rank_creation(self, ctx , member):
@@ -68,7 +132,8 @@ class exp(commands.Cog):
         try:
             mem_info = self.exp_info[str(member.id)]
         except:
-            mem_info= self.user_entry(member)
+            mem_info = self.user_entry(member)
+                   
         level = mem_info["level"]
         rank = mem_info["rank"]
         response = requests.get(member.avatar_url)
@@ -100,7 +165,7 @@ class exp(commands.Cog):
                 role_next,role_next_colour = self.roles[a[i]]
                 break
         else:
-            role = "Council of Numericon"
+            role = "Council of Numericons"
             role_cap = 85
             role_colour = [0, 255, 240]
             role_next_colour = [0,255,240]
@@ -125,16 +190,16 @@ class exp(commands.Cog):
 
         name = member.name
         if len(name)>15:
-            name = name[:15]    
+            name = name[:11]+'...'    
         discrim = member.discriminator
-        nanotech = ImageFont.truetype("NanoTech Regular.otf", 100)
-        roboto_cond = ImageFont.truetype("RobotoCondensed-Light.ttf", 60)
+        nanotech = ImageFont.truetype('NanoTech Regular.otf', 100)
+        roboto_cond = ImageFont.truetype('RobotoCondensed-Light.ttf', 60)
         d =nanotech.getsize(name)[0]
     
         draw.text((50,750),name,font=nanotech)
         draw.text((70+d,750),f"#{discrim}",font=roboto_cond )
 
-        roboto_black = ImageFont.truetype("Roboto-Black.ttf", 110)
+        roboto_black = ImageFont.truetype('Roboto-Black.ttf', 110)
 
         d = roboto_cond.getsize("LEVEL")[0]
         draw.text((600,850),"LEVEL",font = roboto_cond,fill = role_colour)
@@ -144,7 +209,7 @@ class exp(commands.Cog):
         draw.text((50,50),"RANK",font = roboto_cond)
         draw.text((70+d,10),str(rank),font = roboto_black)
 
-        if role == "Council of Numericon":
+        if role == "Council of Numericons":
             role = role.upper()
             x=10
             for i in range(11,20):
@@ -162,14 +227,14 @@ class exp(commands.Cog):
         member_info = {}
         member_info["name"] = user.name
         member_info["xp"] = 0
-        member_info["level"] = 1
+        member_info["level"] = 0
         member_info["rank"] = 0
         member_info["role"] = "Prostitute"
         member_info["messages"] = 1
         member_info["rel_bar"] = 100
         member_info["rel_xp"] = 0
 
-        self.exp_info[user.id] = member_info
+        self.exp_info[str(user.id)] = member_info
         gen.db_update("exp", self.exp_info)
 
         return member_info
@@ -180,10 +245,12 @@ class exp(commands.Cog):
     def get_designation(self, level: int()):
         a = list(self.roles.values())
         for i in range(len(a)):
-            if a[i][0] >= level:
+            if a[i][0] > level:
+                rel_role = a[i - 1][0]
                 break
 
-        rel_role = a[i - 1][0]
+        else:
+            rel_role=85
 
         for role,level in self.roles.items():
             if level[0] == rel_role:
@@ -196,18 +263,20 @@ class exp(commands.Cog):
         
         
         if not message.author.bot:
-            if message.author.id not in self.exp_info.keys() and not message.author.bot:
+            if str(message.author.id) not in self.exp_info.keys():
                 member_info = self.user_entry(message.author)
             
             else:
-                member_info = self.exp_info[message.author.id]
+                member_info = self.exp_info[str(message.author.id)]
 
             member_info["active"] = True
             member_info["messages"] += 1
 
-            self.exp_info[message.author.id] = member_info
+            self.exp_info[str(message.author.id)] = member_info
           
         gen.db_update("exp", self.exp_info)
+
+
 
 
 
@@ -218,11 +287,15 @@ class exp(commands.Cog):
             
         except:
             try:
-            
+                    
                 member1 = member
-                member1 = member1[3:-1]
+                member2=''
+                for i in member1:
+                    if i.isnumeric():
+                        member2+=i
                 
-                member1 = int(member1)
+                member1 = int(member2)
+                
                 member1 = ctx.channel.guild.get_member(member1)
             except :
             
@@ -242,7 +315,8 @@ class exp(commands.Cog):
                 member = ctx.author
             else:
                 member = member1
-              
+        if member.bot:
+            return
         thrd = Thread(target = self.rank_creation,args=(ctx,member))
         thrd.start()
         thrd.join()

@@ -108,6 +108,7 @@ class Meme(commands.Cog):
             subreddit = reddit.subreddit(sr)
             hot_memes = subreddit.hot(limit=limit)
             meme_info = gen.db_receive("meme")
+            
             if sr in meme_info:
                 sub_info = meme_info[sr]
             else:
@@ -155,6 +156,7 @@ class Meme(commands.Cog):
         for sub_info in meme_info:
             sub_info = meme_info[sub_info] 
             sub_info["unshowed"].clear()
+        
         gen.db_update("meme",meme_info)
         #! CLEANING MEMES
         for sub_info in meme_info:
@@ -162,7 +164,7 @@ class Meme(commands.Cog):
             tot=len(sub_info["total"])
             req=limit*10
             if tot>req:
-                for i in range(req+1,tot+1):
+                for i in range(req,tot):
                     sub_info["total"].pop(0)
                 gen.db_update("meme",meme_info)
 

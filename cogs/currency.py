@@ -31,11 +31,11 @@ class Currency(commands.Cog):
             cpu_dye = random.randint(1,6)
             if player_dye > cpu_dye:
                 won_lost = "Bet Won"
-                amount_rec = int((amount)*((player_dye-cpu_dye-0.9)**(1/3))-1)
-                Multiplier = int((((player_dye-cpu_dye)**(1/3))-1)*100)
+                amount_rec = int((amount)*(((player_dye-cpu_dye-0.9)**(1/3))-1))
+                Multiplier = 100 + int((((player_dye-cpu_dye-0.9)**(1/3))-1)*100)
             elif player_dye==cpu_dye:
                 won_lost = "Bet Won"
-                amount_rec=(amount)*2
+                amount_rec=(amount)
                 Multiplier = 200
             else:
                 won_lost = "Bet Lost"
