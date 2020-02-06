@@ -203,7 +203,7 @@ class nsfw(commands.Cog):
                             page += 1
                             
                             if page >= len(doujin_pages):
-                                page = len(doujin_pages)
+                                page = len(doujin_pages)    #? equal pe equal kyu bhai
 
                             embed = update_page(page)
                             await embed_msg.edit(embed=embed)
@@ -212,7 +212,7 @@ class nsfw(commands.Cog):
                             page -= 1
 
                             if page <= 0:
-                                page = 1
+                                page = 1 #? equal pe equal kyu bhai
                             
                             embed = update_page(page)
                             await embed_msg.edit(embed=embed)

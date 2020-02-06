@@ -9,16 +9,15 @@ from discord.ext import commands, tasks
 
 from itertools import cycle
 import general as gen
+import Help
 import asyncio
-
-
 
 #! ME inside
 
 # * CLIENT FUNCTIONS
 prefix = gen.permu("me! ") + gen.permu("epic ")
 client = commands.Bot(command_prefix=prefix, case_insensitive=True)
-client.remove_command("help")
+
 status = cycle(gen.status)
 
 # * COG SET UP STUFF
@@ -160,10 +159,13 @@ async def auto_backup():
 # * ON READY
 @client.event
 async def on_ready():
+    
+    
+    client.help_command = Help.MyHelpCommand()
     change_status.start()
+    auto_backup.start() 
     cog_load_startup()
     
-    auto_backup.start() 
     gen.reset()
 
     print('Bot is ready as sef!')
