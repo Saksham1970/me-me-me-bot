@@ -83,7 +83,7 @@ async def backup(ctx, *, msg=""):
         await ctx.send("Shut Up")
 
 @client.command(aliases=["Debug","Development"])
-async def develop(ctx , on_off):
+async def develop(ctx , on_off, cog=""):
     
     found = False
     for role in ctx.author.roles:                                                                               #! TODO make this a function
@@ -92,16 +92,43 @@ async def develop(ctx , on_off):
     if not found:
         await ctx.send("SHUT UP.")
         return
+
     var = gen.db_receive("var")
     if on_off.lower() == "on" or on_off.lower() == "true":    
         var["DEV"] = 1
+
+        if not cog == "":
+            if cog in var["cogs"]:
+                var["cogs"][cog] = 1
+            else:
+                await ctx.send("The cog doesn't even exist BIG BREN.")
+        else:
+            for cog, debug in var["cogs"].items():
+                var["cogs"][cog] = 1
+
         await ctx.send("DONE.") 
+
     elif on_off.lower() == "off" or on_off.lower() == "false":    
-        var["DEV"] = 0
+
+        if not cog == "":
+            var["DEV"] = 1
+            if cog in var["cogs"]:
+                var["cogs"][cog] = 0
+            else:
+                await ctx.send("The cog doesn't even exist BIG BREN.")
+        else:
+            var["DEV"] = 0
+            for cog, debug in var["cogs"].items():
+                var["cogs"][cog] = 0
+
+
         await ctx.send("DONE.")
+
     else:
         await ctx.send("ITS on OR off. (True or False).")
+        
     gen.db_update("var",var)
+
 
 # ? EVENTS
 

@@ -261,7 +261,7 @@
           "name":"`QUEUE REMOVE` (QUEUE MEMBER)",
           "value":"Removes the Queue member."
         },
-	"queue replace":
+	      "queue replace":
         {
           "name":"`QUEUE REPLACE` (QUEUE MEMBER 1)(QUEUE MEMBER 2)  [move] ",
           "value":"Replaces two queue members."
@@ -293,6 +293,46 @@
         {
         "name" : "`LEAVE`",
         "value" : "Leaves the voice channel."
+        }
+    }
+  },
+
+  "nsfw":
+  {
+    "name" : "NSFW",
+    "emoji": ":high_heel:",
+    "description" : "Commands for big boiz.",
+
+    "fields":
+    {
+        "doujin":
+        {
+        "name" : "`DOUJIN` (ID) [nhentai, doujinshi]",
+        "value" : "View the doujin, tags, artist and stuff."
+        },
+
+        "doujin random":
+        {
+        "name" : "`DOUJIN RANDOM`",
+        "value" : "Gives you a random doujin ro enjoy yourself to"
+        },
+
+        "4k":
+        {
+        "name" : "`4k`",
+        "value" : "4K, hacc certified pics"
+        },
+
+        "read":
+        {
+        "name" : "`READ` (ID)",
+        "value" : "Read the doujin, will create a seperate channel and post all images there. Recomend muting the doujin category."
+        },
+
+        "watch":
+        {
+        "name" : "`WATCH` (ID) [show]",
+        "value" : "Watch the doujin, like a slideshow. Navigate using reactions. The doujin will self delete after being left idle for 3 minutes."
         }
     }
   }

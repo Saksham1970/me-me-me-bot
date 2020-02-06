@@ -7,6 +7,10 @@ import git
 from git import Repo
 from datetime import datetime
 
+server_id = 617021917622173747
+awoo_id = 640862189288423425
+gen_id = 617021918071226369
+
 roles = ['Prostitute', 'Rookie', 'Adventurer', 'Player', 'Hero']
 
 status = ["Saksham's Son", 'Is Mayank', 'Who Is Gay']

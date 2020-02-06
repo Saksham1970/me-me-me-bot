@@ -21,9 +21,12 @@ class exp(commands.Cog):
         self.exp_info = gen.db_receive('exp')
         
         self.give_exp.start()
-    log = lambda self, msg: gen.error_message(msg, gen.cog_colours["exp"])
-    
 
+    def log(self, msg):
+        cog_name = os.path.basename(__file__)[:-3]
+        debug_info = gen.db_receive("var")["cogs"]
+        if debug_info[cog_name] == 1:
+            return gen.error_message(msg, gen.cog_colours[cog_name])
     
     def cog_unload(self):
         self.give_exp.cancel()

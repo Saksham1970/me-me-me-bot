@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from os import system
@@ -16,6 +16,7 @@ import shutil
 from colorama import init, Fore, Back, Style
 imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
 import general as gen
+from asyncio import sleep
 
 
 from threading import Thread
@@ -27,10 +28,82 @@ class Music(commands.Cog):
     queues = []
     loop_song = False
     skip_song = False
+    auto_disconnect_time = 300
+    is_disconnecting = False
     music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
 
-    log = lambda self, msg: gen.error_message(msg, gen.cog_colours["music"])
+    def __init__(self, client):
+        self.client = client
+        self.skip_song = False
+        self.loop_song = False
+        self.is_disconnecting = False
+        self.disconnecting_signal =False
+        self.resume_signal=False
+        self.auto_pause.start()
 
+    @tasks.loop(seconds=2)
+    async def auto_pause(self):
+        self.resume_signal=False
+        guild = self.client.get_guild(gen.server_id)
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+
+        voice = get(self.client.voice_clients, guild=guild)
+
+        if voice and len(voice.channel.members) <= 1:
+            if voice.is_playing():
+                self.log("Player AUTO paused")
+                voice.pause()
+                await awoo_channel.send(f"Everyone left `{voice.channel.name}`, player paused.")
+                self.disconnecting_signal=False
+                self.auto_resume.start()
+            for i in range(300):
+                   
+                if not self.resume_signal:
+                    await asyncio.sleep(1)
+                else:
+                    break
+            else:
+
+                await self.auto_disconnect()
+                self.auto_resume.stop()
+                
+        
+
+    @tasks.loop(seconds=1)
+    async def auto_resume(self):
+        guild = self.client.get_guild(gen.server_id)
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+
+        voice = get(self.client.voice_clients, guild=guild)
+
+        if voice and voice.is_paused() and len(voice.channel.members) > 1:
+            self.log("Music AUTO resumed")
+            voice.resume()
+            await awoo_channel.send(f"Looks like someone joined `{voice.channel.name}`, player resumed.")
+            self.resume_signal=True
+            self.auto_resume.stop()
+       
+        
+    async def auto_disconnect(self):
+    
+        guild = self.client.get_guild(gen.server_id)
+        voice = get(self.client.voice_clients, guild=guild)
+   
+       
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+ 
+        await voice.disconnect()
+
+        await awoo_channel.send(f"I was left all alone, so I left VC `{voice.channel.name}`")
+        self.log(f"Auto disconnected from {voice.channel.name}")
+        self.queues.clear()
+    
+    def log(self, msg):
+        cog_name = os.path.basename(__file__)[:-3]
+        debug_info = gen.db_receive("var")["cogs"]
+        if debug_info[cog_name] == 1:
+            return gen.error_message(msg, gen.cog_colours[cog_name])
+        
     def player(self,voice):
         def check_queue():
             DIR = os.path.abspath(os.path.realpath("./Queue"))
@@ -61,11 +134,6 @@ class Music(commands.Cog):
                     after=lambda e: check_queue())
         voice.source = discord.PCMVolumeTransformer(voice.source)
         voice.source.volume = 0.4
-
-    def __init__(self, client):
-        self.client = client
-        self.skip_song = False
-        self.loop_song = False
 
     def get_title(self, url: str()):
         ydl_opts = {
@@ -136,7 +204,7 @@ class Music(commands.Cog):
         
         if not voice:
             voice = await channel.connect()
-            await ctx.send(f">>> Joined ```{channel}```")
+            await ctx.send(f">>> Joined `{channel}`")
             return True
         
         
@@ -146,7 +214,7 @@ class Music(commands.Cog):
         
         elif voice and len(voice.channel.members)==1:
             await voice.move_to(channel)
-            await ctx.send(f">>> Joined ```{channel}```")
+            await ctx.send(f">>> Joined `{channel}`")
             return True
         
         
@@ -155,7 +223,6 @@ class Music(commands.Cog):
             return False
     @commands.command()
     async def play(self, ctx, *,query):
-
   
         if not (await ctx.invoke(self.client.get_command("join"))):
             return
@@ -273,7 +340,7 @@ class Music(commands.Cog):
             return
             
         if change1 >1 and change2>1 and change1 <= len(self.queues) and change2 <= len(self.queues):
-            await ctx.send(f">>> Switched the places of **{self.queues[change2-1]}** and **{self.queues[change1-1]}**")
+            await ctx.send(f">>> Switched the places of **{self.queues[change2-1][2]}** and **{self.queues[change1-1][2]}**")
             self.queues[change1-1],self.queues[change2-1]=self.queues[change2-1],self.queues[change1-1]
         else:
             await ctx.send("The numbers you entered are just as irrelevant as your existence.")
@@ -352,6 +419,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['st','yamero'])
     async def stop(self, ctx):
+        
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send("You are not even in the VC.")
