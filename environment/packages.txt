@@ -1,0 +1,16 @@
+python-dotenv
+discord
+asyncio
+praw
+colorama
+datetime
+pillow
+pytesseract
+requests
+youtube_dl
+urllib3
+lxml
+pynacl
+time
+tqdm
+bs4
