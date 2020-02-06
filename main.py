@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import sys
 
 import discord
 from discord.ext import commands, tasks
@@ -81,6 +82,20 @@ async def backup(ctx, *, msg=""):
             await ctx.send(">>> Couldn't Backup Since Commit upto the mark.")
     else:
         await ctx.send("Shut Up")
+
+@client.command()
+async def re_init(ctx):
+    found = False
+    for role in ctx.author.roles:                                                                               #! TODO make this a function
+            if role.id == gen.admin_role_id:
+                found=True    
+    if not found:
+        await ctx.send("SHUT UP.")
+        return
+    
+    os.startfile(__file__)
+    await ctx.send("DONE")
+    sys.exit()
 
 @client.command(aliases=["Debug","Development"])
 async def develop(ctx , on_off, cog=""):
