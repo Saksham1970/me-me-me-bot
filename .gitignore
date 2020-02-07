@@ -5,3 +5,4 @@ Database/*
 Queue/*
 nhenpy/cache.nhentai.net/*
 cache.nhentai.net/*
+.mypy_cache/*
