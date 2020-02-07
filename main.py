@@ -1,35 +1,38 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv #? ENV
 load_dotenv()
 
+#? OS/SYS
 import os
 import sys
 
+#? DISCORD
 import discord
 from discord.ext import commands, tasks
 
+#? ALL OTHERS
 from itertools import cycle
-import general as gen
-import Help
 import asyncio
 
-#! ME inside
+#? FILES
+import general as gen
+import Help
 
-# * CLIENT FUNCTIONS
+# * CLIENT SETUP
 prefix = gen.permu("me! ") + gen.permu("epic ")
 client = commands.Bot(command_prefix=prefix, case_insensitive=True)
-
 status = cycle(gen.status)
 
 # * COG SET UP STUFF
+
 @client.command(aliases=["enable"])
+@commands.has_role(gen.admin_role_id)
 async def load(ctx, extension):
-    found = False
-    for role in ctx.author.roles:
-        if role.id == gen.admin_role_id:
-            found = True
-            client.load_extension(f"cogs.{extension}")
-            await ctx.send(f">>> {extension.capitalize()} commands are now ready to deploy.")
-    if not found:
+    client.load_extension(f"cogs.{extension}")
+    await ctx.send(f">>> {extension.capitalize()} commands are now ready to deploy.")
+    
+@load.error
+async def load_error(ctx,error):
+    if isinstance(error, commands.MissingRole):
         await ctx.send(f">>> You thought that you could do that? How Cute.")
 
 
@@ -170,11 +173,7 @@ async def on_ready():
 
     print('Bot is ready as sef!')
 
-# * DELAYS FOR INTAKE
-@client.event
-async def on_message(message):
-    ctx = await client.get_context(message)
-    await client.invoke(ctx)
+
 
 # * COMMAND NOT FOUND
 @client.event
