@@ -129,58 +129,7 @@ class Utility(commands.Cog):
             await ctx.send(embed=avatar_command(ctx,member))
 
 
-    #* HELP
    
-    @commands.command()
-    async def help(self, ctx, subfield=""):
-        
-        commands_info = gen.db_receive("commands")
-        commands_info: dict()
-        inline_threshold = 45
-        
-        
-        if subfield == "":
-            
-            help = discord.Embed(
-                colour  = discord.Colour.from_rgb(255,50,150),
-                title = "ME! HELP {SUBFIELD}",
-                description = "This shows all commands. `PREFIX: ME! , EPIC`  `[]: Aliases` `{}: Optional Arguments` `(): Mandatory Arguments`"
-            )
-            
-            for info in commands_info:
-                emoji = commands_info[info]["emoji"]
-                name = commands_info[info]["name"]
-                
-                
-                help.add_field(name = f"{emoji} **{name}**", value = f'>>> `ME! HELP {info.upper()}`')
-            
-        else:  
-            if subfield in commands_info:
-                subfield_info = commands_info[subfield]
-                subfield_info: dict()
-            
-            else:
-                await ctx.send(">>> That set of commands doesn't even exist.")
-                return
-            
-            emoji = subfield_info["emoji"]
-            name = subfield_info["name"]
-            desc = subfield_info["description"]
-            
-            inline_threshold = 60
-           
-            help = discord.Embed(
-                colour  = discord.Colour.from_rgb(255,50,150),
-                title = f"{emoji} **{name}**",
-                description = f"{desc}")
-
-            for field in subfield_info["fields"].values(): 
-                if len(desc) < inline_threshold:
-                    help.add_field(name = field["name"], value =field["value"])
-                else:
-                    help.add_field(name = field["name"], value =field["value"], inline = False)
-                
-        await ctx.send(embed = help)
         
 def setup(client):
     client.add_cog(Utility(client))

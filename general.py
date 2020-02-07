@@ -50,7 +50,8 @@ def commit(sp_msg: str()):
     commit_msg = f"Database updated - {date_time} -> {sp_msg} "
     g = git.Git("./Database")
     try:
-        g.execute(f'git commit -a -m "{commit_msg}" ')
+        g.execute(f'git add --all')
+        g.execute(f'git commit -m "{commit_msg}" ')
         g.execute("git push --force")
     except:
         print("Commit upto the point. Can't commit.")
