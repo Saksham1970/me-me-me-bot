@@ -9,6 +9,7 @@ class Testing(commands.Cog):
     @commands.command()
     async def roles(self,ctx):
         await ctx.send(ctx.author.roles)
+        
     @commands.command()
     async def role_rgb(self,ctx,role:discord.Role):
         await ctx.send(role.color.to_rgb())
