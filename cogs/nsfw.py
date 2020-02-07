@@ -11,6 +11,7 @@ from typing import List
 from asyncio import TimeoutError
 
 class nsfw(commands.Cog):
+    ''':high_heel: Commands for big boiz.'''
 
     nhentai_logo = "https://i.imgur.com/uLAimaY.png"
     doujins_category_name = "Doujins 📓"
@@ -90,7 +91,9 @@ class nsfw(commands.Cog):
             return False
 
     @commands.command(aliases=["4k"])
-    async def four_k(self, ctx):
+    async def porn(self, ctx):
+        '''4K, hacc certified pics'''
+
         if await self.check_nsfw(ctx.message.channel):
             image_found = False
 
@@ -112,6 +115,8 @@ class nsfw(commands.Cog):
 
     @commands.command()
     async def read(self, ctx, doujin_id):
+        '''Read the doujin, will create a seperate channel and post all images there. Recomend muting the doujin category.'''
+
         doujin = nhenpy.NHentaiDoujin(f"/g/{doujin_id}")
         doujin_pages = len(doujin.pages)
         url = f"https://nhentai.net/g/{doujin_id}/"
@@ -153,6 +158,8 @@ class nsfw(commands.Cog):
 
     @commands.command(aliases=["show"])
     async def watch(self, ctx, doujin_id, page_number=1):
+        '''Watch the doujin, like a slideshow. Navigate using reactions. The doujin will self delete after being left idle for 3 minutes.'''
+        
         if await self.check_nsfw(ctx.message.channel):
 
             async def reactions_add(message, reactions):
@@ -249,6 +256,8 @@ class nsfw(commands.Cog):
 
     @commands.group(aliases=["doujin", "doujinshi"])
     async def nhentai(self, ctx, doujin_id: str):
+        '''View the doujin, tags, artist and stuff.'''
+
         if doujin_id.isnumeric():
             if await self.check_nsfw(ctx.message.channel):
                 doujin = nhenpy.NHentaiDoujin(f"/g/{doujin_id}")
@@ -270,6 +279,7 @@ class nsfw(commands.Cog):
 
     @commands.command()
     async def random(self, ctx):
+        '''Gives you a random doujin to enjoy yourself to'''
         search_tag = str(choice(self.tags))
         search = self.nh.search(f"tag:{search_tag}", 1)
 

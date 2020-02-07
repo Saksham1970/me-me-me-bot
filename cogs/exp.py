@@ -13,6 +13,7 @@ from PIL import Image,ImageDraw,ImageOps,ImageFont
 
 
 class exp(commands.Cog):
+    ''':piingblob: Level up by dending messages, earn new ranks and powers by doing so.'''
     
     roles = {"Prostitute":[0,[230, 126, 34]],"Rookie":[5,[153, 45, 34]],"Adventurer":[10,[173, 20, 87]],"Player":[25,[241, 196, 15]],"Hero":[50,[46, 204, 113]],"Council of Numericons":[85,[0, 255, 240]]}
     
@@ -285,6 +286,8 @@ class exp(commands.Cog):
 
     @commands.command()
     async def rank(self, ctx,member = ''):
+        '''Shows your level and rank, all epic style.'''
+
         try:
             int(member)
             

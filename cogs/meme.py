@@ -6,6 +6,7 @@ imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.p
 import general as gen
 
 class Meme(commands.Cog):
+    ''':pepeOK: Memes are a part of our culture.'''
 
     def __init__(self, client):
         self.client = client
@@ -17,6 +18,8 @@ class Meme(commands.Cog):
 
     @commands.command()
     async def meme(self,ctx,subreddit = "memes", amount = 1,types = "hot"):
+        '''Get some fresh memes, you insolent prick.'''
+        
         reddit = gen.reddit
         subr = reddit.subreddit(subreddit)
         if types.lower() == "hot":                  #* Checks no stickied

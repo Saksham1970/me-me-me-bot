@@ -48,6 +48,7 @@ def avatar_command(ctx,member):
     
     return embed
 class Utility(commands.Cog):
+    ''':tools: These commands are of great UTILITY.'''
 
     def __init__(self, client):
         self.client = client
@@ -55,11 +56,15 @@ class Utility(commands.Cog):
     #* PING
     @commands.command()
     async def ping(self, ctx):
+        '''It really means nothing, but well it tells the DAMN PING.'''
+
         await ctx.send(f">>> ME! PING: `{round(self.client.latency* 1000)}ms` ")
 
     #* INFO 
     @commands.command()
     async def info(self, ctx):
+        '''Lemme tell you about ME!!!'''
+
         info = discord.Embed(
             colour = discord.Colour.red(),
             title = "ME!ME!ME!",
@@ -75,6 +80,8 @@ class Utility(commands.Cog):
     #* CLEAR
     @commands.command()
     async def clear(self, ctx, amount=10):
+        '''I can delete the evidence of a bully, no one shall know.'''
+
         if amount>0:
             await ctx.channel.purge(limit=amount+1)
             await ctx.send(f">>> {amount} messages deleted boss. Now no one will know you were bullied")
@@ -91,6 +98,8 @@ class Utility(commands.Cog):
     #* SUGGEST
     @commands.command()
     async def suggest(self,ctx,*,suggestion):
+        '''Suggest stuff, or maybey not'''
+
         await ctx.channel.purge(limit=1)
         embed = discord.Embed(
             colour = discord.Colour.from_rgb(255,0,0),
@@ -106,6 +115,8 @@ class Utility(commands.Cog):
        
     @commands.command(aliases = ["about"])
     async def check(self,ctx, member: discord.Member):
+        '''Tells you about your status in our server.'''
+        
         embed = check_command(ctx,member)
         await ctx.send(embed=embed) 
        
@@ -120,6 +131,8 @@ class Utility(commands.Cog):
     
     @commands.command(aliases = ["av"])
     async def avatar(self,ctx,member: discord.Member ):
+        '''Gives your damn avatar so you can tell everyone how cool it looks.'''
+        
         await ctx.send(embed=avatar_command(ctx,member))
         
     @avatar.error

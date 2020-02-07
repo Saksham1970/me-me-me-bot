@@ -1,23 +1,28 @@
 import discord
 from discord.ext import commands, tasks
 
-
-        
+      
 class MyHelpCommand(commands.HelpCommand):
     
     def __init__(self):
         super().__init__(command_attrs={
 	    		'help': 'Shows help about the bot, a command, or a category',
 	    		'cooldown': commands.Cooldown(1, 3.0, commands.BucketType.member)})
+
     nsfw_cog_name = "nsfw"
+
     def get_command_signature(self, command):
         """Method to return a commands name and signature"""
+
         if not command.signature and not command.parent:  # checking if it has no args and isn't a subcommand
             return f'`ME!` `{command.name}`'
+
         if command.signature and not command.parent:  # checking if it has args and isn't a subcommand
             return f'`ME!` `{command.name}` `{command.signature}`'
+
         if not command.signature and command.parent:  # checking if it has no args and is a subcommand
             return f'`ME!` `{command.parent.name}` `{command.name}`'
+
         else:  # else assume it has args a signature and is a subcommand
             return f'`ME!` `{command.parent.name}` `{command.name}` `{command.signature}`'
 
@@ -30,6 +35,7 @@ class MyHelpCommand(commands.HelpCommand):
 
     def get_command_description(self, command):
         """Method to return a commands short doc/brief"""
+
         if not command.short_doc:  # check if it has any brief
             return 'There is no documentation for this command currently'
         else:
@@ -37,6 +43,7 @@ class MyHelpCommand(commands.HelpCommand):
 
     def get_command_help(self, command):
         """Method to return a commands full description/doc string"""
+
         if not command.help:  # check if it has any brief or doc string
             return 'There is no documentation for this command currently'
         else:
@@ -58,8 +65,8 @@ class MyHelpCommand(commands.HelpCommand):
                 except:
                     emoji = ":construction_worker:"
                     desc = "This is under construction, Now Skiddadle Skidoodle."
+
                 embeds += [discord.Embed(title = f"{emoji} **{cog_name}** ", description = desc)]
-                
 
                 for command in mapping[cog]:
                     
@@ -78,6 +85,7 @@ class MyHelpCommand(commands.HelpCommand):
             if cog:
                 cog_name = cog.qualified_name
                 embed.add_field(name = f"{emoji} **{cog_name}**", value= f">>> `ME! HELP {cog_name}`")
+
         embeds.insert(0,embed)
         
         wait_time = 180
@@ -88,6 +96,7 @@ class MyHelpCommand(commands.HelpCommand):
         async def reactions_add(message, reactions):
                 for reaction in reactions:
                     await message.add_reaction(reaction)
+
         reactions = {"back": "⬅", "forward": "➡", "nsfw": "🍆", "delete": "❌"}
         ctx.bot.loop.create_task(reactions_add(embed_msg, reactions.values())) 
 
@@ -153,9 +162,12 @@ class MyHelpCommand(commands.HelpCommand):
         except:
             emoji = ":construction_worker:"
             desc = "This is under construction, Now Skiddadle Skidoodle."
+
         embed = discord.Embed(title = f"{cog.qualified_name} {emoji}", description = desc)
+
         for command in cog.get_commands():
             embed.add_field(name = f'{self.get_command_signature(command)} {self.get_command_aliases(command)}',value = self.get_command_description(command))
+        
         await ctx.send(embed=embed)
     
     async def send_group_help(self, group):
@@ -163,7 +175,9 @@ class MyHelpCommand(commands.HelpCommand):
 
         parent_command = list(group.commands)[0].parent
         embed = discord.Embed(title =  f"{self.get_command_signature(parent_command)} {self.get_command_aliases(parent_command)}",description=self.get_command_help(parent_command))
+        
         for command in group.commands:
             embed.add_field(name = f'{self.get_command_signature(command)} {self.get_command_aliases(command)}',value = self.get_command_description(command))
+        
         await ctx.send(embed=embed)
     
