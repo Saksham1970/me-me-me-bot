@@ -6,7 +6,7 @@ imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.p
 import general as gen
 
 class Meme(commands.Cog):
-    ''':pepeOK: Memes are a part of our culture.'''
+    ''':clap: Memes are a part of our culture.'''
 
     def __init__(self, client):
         self.client = client

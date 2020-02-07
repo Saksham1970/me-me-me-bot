@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+from asyncio import TimeoutError
 
       
 class MyHelpCommand(commands.HelpCommand):
@@ -9,7 +10,7 @@ class MyHelpCommand(commands.HelpCommand):
 	    		'help': 'Shows help about the bot, a command, or a category',
 	    		'cooldown': commands.Cooldown(1, 3.0, commands.BucketType.member)})
 
-    nsfw_cog_name = "nsfw"
+    nsfw_cog_name = "Nsfw"
 
     def get_command_signature(self, command):
         """Method to return a commands name and signature"""
@@ -58,7 +59,7 @@ class MyHelpCommand(commands.HelpCommand):
 
         for cog in mapping:
             if cog:
-                cog_name = cog.qualified_name
+                cog_name = cog.qualified_name.capitalize()
 
                 try:
                     emoji,desc = cog.description.split(maxsplit = 1)
@@ -66,7 +67,7 @@ class MyHelpCommand(commands.HelpCommand):
                     emoji = ":construction_worker:"
                     desc = "This is under construction, Now Skiddadle Skidoodle."
 
-                embeds += [discord.Embed(title = f"{emoji} **{cog_name}** ", description = desc)]
+                embeds += [discord.Embed(title = f"{emoji} **{cog_name}** ", description = desc, color=discord.Colour.magenta())]
 
                 for command in mapping[cog]:
                     
@@ -74,7 +75,9 @@ class MyHelpCommand(commands.HelpCommand):
 
                  
                 cogs_list+=[cog_name]
-        embed = discord.Embed(title = "ME! HELP",description = "Yet to be filled")
+        embed = discord.Embed(title = "ME! HELP",
+                                description = "All the types of command ME! has to offer \n\nPREFIX ->  `me!` or `epic`\n",
+                                color=discord.Colour.magenta())
                 
         for cog in mapping:
             try:
@@ -83,7 +86,7 @@ class MyHelpCommand(commands.HelpCommand):
                 emoji = ":construction_worker:"
                 desc = "This is under construction, Now Skiddadle Skidoodle."
             if cog:
-                cog_name = cog.qualified_name
+                cog_name = cog.qualified_name.capitalize()
                 embed.add_field(name = f"{emoji} **{cog_name}**", value= f">>> `ME! HELP {cog_name}`")
 
         embeds.insert(0,embed)
@@ -123,7 +126,7 @@ class MyHelpCommand(commands.HelpCommand):
                         page += 1
                         
                         if page >= len(embeds):
-                            page = len(embed)-1
+                            page = len(embeds)-1
 
                         
                         await embed_msg.edit(embed=embeds[page])
@@ -138,9 +141,9 @@ class MyHelpCommand(commands.HelpCommand):
                         await embed_msg.edit(embed=embeds[page])
 
                     elif str(reaction.emoji) == reactions["nsfw"]: 
-                        page = cogs_list.index(self.nsfw_cog_name)
+                        page = cogs_list.index(self.nsfw_cog_name)+1
                      
-                        await embed_msg.edit(embed=embeds[page+1])
+                        await embed_msg.edit(embed=embeds[page])
 
 
                     elif str(reaction.emoji) == reactions["delete"]: 
@@ -152,7 +155,7 @@ class MyHelpCommand(commands.HelpCommand):
     async def send_command_help(self, command):
         ctx=self.context
       
-        embed = discord.Embed(title =  f"{self.get_command_signature(command)} {self.get_command_aliases(command)}",description=self.get_command_help(command))
+        embed = discord.Embed(title =  f"{self.get_command_signature(command)} {self.get_command_aliases(command)}",description=self.get_command_help(command), color=discord.Colour.magenta())
         await ctx.send(embed=embed)
 
     async def send_cog_help(self, cog):
@@ -163,7 +166,7 @@ class MyHelpCommand(commands.HelpCommand):
             emoji = ":construction_worker:"
             desc = "This is under construction, Now Skiddadle Skidoodle."
 
-        embed = discord.Embed(title = f"{cog.qualified_name} {emoji}", description = desc)
+        embed = discord.Embed(title = f"{cog.qualified_name} {emoji}", description = desc, color=discord.Colour.magenta())
 
         for command in cog.get_commands():
             embed.add_field(name = f'{self.get_command_signature(command)} {self.get_command_aliases(command)}',value = self.get_command_description(command))
@@ -174,7 +177,7 @@ class MyHelpCommand(commands.HelpCommand):
         ctx=self.context
 
         parent_command = list(group.commands)[0].parent
-        embed = discord.Embed(title =  f"{self.get_command_signature(parent_command)} {self.get_command_aliases(parent_command)}",description=self.get_command_help(parent_command))
+        embed = discord.Embed(title =  f"{self.get_command_signature(parent_command)} {self.get_command_aliases(parent_command)}",description=self.get_command_help(parent_command), color=discord.Colour.magenta())
         
         for command in group.commands:
             embed.add_field(name = f'{self.get_command_signature(command)} {self.get_command_aliases(command)}',value = self.get_command_description(command))
