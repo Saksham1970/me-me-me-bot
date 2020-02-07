@@ -13,61 +13,46 @@ class Immortal(commands.Cog):
 
     #* STATS
     @commands.command()
+    @commands.has_role(gen.admin_role_id)
     async def stats(self, ctx):
         '''Shows stats of all the ACTIVE PEOPLE WHO HAVE NO LIFE.'''
 
-        found=False
-        for role in ctx.author.roles:
-            if role.id == gen.admin_role_id:
-                found=True  
-
-        if found:
-            mem_info = gen.db_receive("inf")
-            
+        mem_info = gen.db_receive("inf")
         
-            for key in mem_info:
-                stats = discord.Embed(
-                title = "ME! Stats",
-                colour = discord.Colour.from_rgb(0,0,0)
-                )
-                member = ctx.guild.get_member_named(mem_info[key]["name"])
+    
+        for key in mem_info:
+            stats = discord.Embed(
+            title = "ME! Stats",
+            colour = discord.Colour.from_rgb(0,0,0)
+            )
+            member = ctx.guild.get_member_named(mem_info[key]["name"])
 
 
-                stats.set_author(name = mem_info[key]["name"], icon_url = member.avatar_url)
-                stats.add_field(name = "Messages",value= mem_info[key]["messages"], inline = True)
-                stats.add_field(name = "Level",value= mem_info[key]["level"], inline = True)
-                stats.add_field(name = "Souls",value= mem_info[key]["coins"], inline = True)
-                await ctx.send(embed = stats)
-
-        else:
-            await ctx.send("How cute, you thought you could do that.")
+            stats.set_author(name = mem_info[key]["name"], icon_url = member.avatar_url)
+            stats.add_field(name = "Messages",value= mem_info[key]["messages"], inline = True)
+            stats.add_field(name = "Level",value= mem_info[key]["level"], inline = True)
+            stats.add_field(name = "Souls",value= mem_info[key]["coins"], inline = True)
+            await ctx.send(embed = stats)
 
     #* RECORDING
     @commands.command()
+    @commands.has_role(gen.admin_role_id)
     async def record_stats(self,ctx):
         '''Records stats of all the FUCKING SLAVES OF THIS SERVER.'''
 
-        found=False
-        for role in ctx.author.roles:
-            if role.id == gen.admin_role_id:
-                found=True  
-
-        if found:
-            for member in ctx.guild.members:
-                mem_info = gen.db_receive("inf")
-                disc = member.discriminator
+        for member in ctx.guild.members:
+            mem_info = gen.db_receive("inf")
+            disc = member.discriminator
+            
+            if disc in mem_info:
+                mem_info[disc]["name"] = member.name
+                gen.db_update("inf",mem_info)
+            else:    
+                name = member.name
+                gen.new_entry(name,disc)
                 
-                if disc in mem_info:
-                    mem_info[disc]["name"] = member.name
-                    gen.db_update("inf",mem_info)
-                else:    
-                    name = member.name
-                    gen.new_entry(name,disc)
-                    
-                
-            await ctx.send(f"Done boss")
-        else:
-            await ctx.send("How cute, you thought you could do that.")
+            
+        await ctx.send(f"Done boss")
 
     #* LEVEL
     @commands.command()
@@ -87,8 +72,8 @@ class Immortal(commands.Cog):
         
         if int(ctx.author.discriminator) == mee6_disc:
             found = True
+
         if found:      
-        
             roles_list = member.roles
             for role in roles_list:
                 if str(role) in gen.roles:
