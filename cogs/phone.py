@@ -5,6 +5,7 @@ from discord.ext import commands
 from threading import Thread
 
 class Phone(commands.Cog):
+    ''':iphone: PHONE SIMULATOR 2019.'''
 
     def __init__(self, client):
         self.client = client
@@ -38,6 +39,7 @@ class Phone(commands.Cog):
     
     @commands.group()
     async def phone(self,ctx):
+        '''Shows your Phone.'''
         
         if ctx.invoked_subcommand is None:
             
@@ -57,7 +59,8 @@ class Phone(commands.Cog):
 
     @phone.command(aliases = ["color"])
     async def colour(self,ctx,place,r:int,g:int,b:int):
-      
+        '''Changes wallpaper and body's colour.'''        
+
         if r>255 or g>255 or b>255 or r<0 or g<0 or b<0:
             await ctx.send("SHUT UP")
             return
@@ -78,6 +81,8 @@ class Phone(commands.Cog):
 
     @phone.command()
     async def type(self,ctx,*,Ptype = None):
+        '''Well you can at least get new phones in this virtual world.'''
+
         phone_db = gen.db_receive("phone")
         phones = gen.db_receive("phone_types")
         if Ptype in phones.keys():

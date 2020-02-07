@@ -6,6 +6,7 @@ imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.p
 import general as gen
 
 class Immortal(commands.Cog):
+    ''':ghost: These commands are not for some puny mortals, Only Immortal beings possess these commands.'''
 
     def __init__(self, client):
         self.client = client 
@@ -13,6 +14,8 @@ class Immortal(commands.Cog):
     #* STATS
     @commands.command()
     async def stats(self, ctx):
+        '''Shows stats of all the ACTIVE PEOPLE WHO HAVE NO LIFE.'''
+
         found=False
         for role in ctx.author.roles:
             if role.id == gen.admin_role_id:
@@ -42,6 +45,8 @@ class Immortal(commands.Cog):
     #* RECORDING
     @commands.command()
     async def record_stats(self,ctx):
+        '''Records stats of all the FUCKING SLAVES OF THIS SERVER.'''
+
         found=False
         for role in ctx.author.roles:
             if role.id == gen.admin_role_id:
@@ -67,6 +72,8 @@ class Immortal(commands.Cog):
     #* LEVEL
     @commands.command()
     async def level(self, ctx,member: discord.Member,level:int): 
+        '''This is a MEE6 exclusive command, no puny mortal can use this.'''
+        
         name = member.name
         disc = member.discriminator
         
@@ -122,6 +129,8 @@ class Immortal(commands.Cog):
     #* TOP SECRET DONT TOUCH
     @commands.command()
     async def admin(self, ctx):
+        '''This is a top secret command, no using this.'''
+
         embed = discord.Embed(title = "ADMIN RIGHTS", description = "Short_Terminal_Cout_var_ADMIN_ROLE", colour = discord.Color.red(), url = gen.epic)
 
         await ctx.send(embed = embed)

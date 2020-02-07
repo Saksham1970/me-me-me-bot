@@ -8,6 +8,7 @@ from PIL import Image
 import io
 
 class Fun(commands.Cog):
+    ''':grin: These commands will make your day great.'''
 
     def __init__(self, client):
         self.client = client 
@@ -17,6 +18,8 @@ class Fun(commands.Cog):
     #! QUES
     @commands.command(aliases=['8ball', '_8ball', 'question'])
     async def ques(self, ctx, *, question):
+        '''I have answers to all your questions in this GOD DAMN WORLD.'''
+
         responses = [
             'Bilkul.', 'Arey haan.', 'Without a doubt.', 'Definitely.',
             'Aditya Giri says so.', 'Sahi baat.', 'My Boyas says so.',
@@ -44,6 +47,8 @@ class Fun(commands.Cog):
     #! DIX
     @commands.command(aliases=['penis', 'dicc', 'peepee', 'dick'])
     async def dix(self, ctx):
+        '''Well, I calculate your peepee with my special MEASURING STICK that goes in ME! ass.'''
+
         random_p = random.randrange(1, 10)
         dicc_string = random_p 
         name = str(ctx.message.author)[:-5]
@@ -62,6 +67,8 @@ class Fun(commands.Cog):
     #! EMOJI
     @commands.command(aliases = ['emo'])
     async def emoji(self,ctx,emoji_name,amount = 3):
+      '''Returns the emoji or maybe not.'''
+
       strs = f":{emoji_name}: "*amount
       await ctx.send(strs)
     @emoji.error
@@ -72,6 +79,10 @@ class Fun(commands.Cog):
     #! OCR
     @commands.command()
     async def ocr(self,ctx,im = ""):
+        '''Read the text in an image.
+            Why is it in FUN you may ask, well see for yourself.
+        '''
+
         if im =="":
             await ctx.send("Enter a url.")
             return

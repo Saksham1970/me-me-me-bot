@@ -8,6 +8,7 @@ import general as gen
 
 
 class Currency(commands.Cog):
+    ''':moneybag: Virtual money dudes'''
 
     def __init__(self, client):
         self.client = client      
@@ -15,6 +16,8 @@ class Currency(commands.Cog):
     #! BET
     @commands.command()
     async def bet(self, ctx, amount : int):
+        '''Well, this is the only fun part, BET, hail KAKEGURUI.'''
+
         name = ctx.author.name
         disc = ctx.author.discriminator
         #! GET COINS
@@ -84,6 +87,8 @@ class Currency(commands.Cog):
     #BANK
     @commands.command()
     async def bank(self, ctx):
+        '''When you are broke, cry in front of the GOVT. and get some loan to use in a game which will have no impact on your true irl broke ass.'''
+
         name = ctx.author.name
         disc = ctx.author.discriminator
         a = random.randrange(1,10)
@@ -107,6 +112,8 @@ class Currency(commands.Cog):
     #SOULS
     @commands.command(aliases=['bal','coins'])
     async def souls(self, ctx):
+        '''Just the balance of your souls. THATS IT.'''
+
         name = ctx.author.name
         disc = ctx.author.discriminator 
         

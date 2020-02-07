@@ -17,13 +17,11 @@ from colorama import init, Fore, Back, Style
 imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
 import general as gen
 from asyncio import sleep
-
-
 from threading import Thread
 
 
-
 class Music(commands.Cog):
+    ''':musical_note: The title says it all, commands related to music and stuff.'''
 
     queues = []
     loop_song = False
@@ -135,7 +133,7 @@ class Music(commands.Cog):
         voice.source = discord.PCMVolumeTransformer(voice.source)
         voice.source.volume = 0.4
 
-    def get_title(self, url: str()):
+    def get_title(self, url: str):
         ydl_opts = {
                 'format': 'bestaudio/best',
                 'quiet': True,
@@ -150,7 +148,7 @@ class Music(commands.Cog):
 
             return info.get('title', None)
 
-    def get_thumbnail(self, url: str()):
+    def get_thumbnail(self, url: str):
         return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]      
     
     def join_list(self, ls):
@@ -193,7 +191,8 @@ class Music(commands.Cog):
 
     @commands.command()
     async def join(self, ctx):
-        
+        '''Joins the voice channel you are currently in.'''
+
         try:
             channel = ctx.message.author.voice.channel
         except:
@@ -223,6 +222,7 @@ class Music(commands.Cog):
             return False
     @commands.command()
     async def play(self, ctx, *,query):
+        '''Plays the audio of the video in the provided YOUTUBE url.'''
   
         if not (await ctx.invoke(self.client.get_command("join"))):
             return
@@ -283,6 +283,8 @@ class Music(commands.Cog):
             
     @commands.command(aliases=['lp'])
     async def loop(self, ctx,toggle = ""):
+        '''Loops the current song, doesn't affect the skip command tho. If on/off not passed it will toggle it.'''
+
         if toggle.lower() == "on":
             self.loop_song = True
             await ctx.send(">>> **Looping current song now**")
@@ -300,8 +302,11 @@ class Music(commands.Cog):
             else:
                 self.loop_song = True
                 await ctx.send(">>> **Looping current song now**")
+    
     @commands.command()
     async def restart(self,ctx):
+        '''Restarts the current song.'''
+
         temp = self.loop_song
         self.loop_song = True
         voice = get(self.client.voice_clients, guild=ctx.guild)
@@ -311,6 +316,8 @@ class Music(commands.Cog):
                 
     @commands.group(aliases=['q'])
     async def queue(self, ctx):
+        '''Shows the current queue.'''
+
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(title="QUEUE",
                              color=discord.Colour.dark_purple())
@@ -329,6 +336,8 @@ class Music(commands.Cog):
 
     @queue.command(aliases=['move'])
     async def replace(self,ctx,change1,change2):
+        '''Replaces two queue members.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
@@ -348,6 +357,8 @@ class Music(commands.Cog):
 
     @queue.command()
     async def remove(self,ctx,remove):
+        '''Removes the Queue member.'''
+        
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send(f"You are not even in the VC.")
@@ -368,6 +379,8 @@ class Music(commands.Cog):
 
     @queue.command()
     async def now(self,ctx,change):
+        '''Plays a queue member NOW.'''
+        
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
@@ -389,7 +402,8 @@ class Music(commands.Cog):
    
     @commands.command(aliases=['p'])
     async def pause(self, ctx):
-        
+        '''Pauses the current music.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
@@ -404,6 +418,8 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['r', 'res'])
     async def resume(self, ctx):
+        '''Resumes the current music.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
@@ -419,7 +435,8 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['st','yamero'])
     async def stop(self, ctx):
-        
+        '''Stops the current music AND clears the current queue.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send("You are not even in the VC.")
@@ -448,6 +465,8 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['n', 'sk', 'skip'])
     async def next(self, ctx):
+        '''Skips the current song and plays the next song in the queue.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send("You are not even in the VC.")
@@ -463,7 +482,8 @@ class Music(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
-        
+        '''Leaves the voice channel.'''
+
         voice = get(self.client.voice_clients, guild=ctx.guild)
         if ctx.author not in voice.channel.members:
             await ctx.send("You are not even in the VC.")
@@ -479,6 +499,8 @@ class Music(commands.Cog):
             
     @commands.command(aliases=["dnld"])
     async def download(self, ctx, *,query):
+        '''Downloads a song for you, so your pirated ass doesn't have to look for it online.'''
+
         url = self.url_get(query)
         embed = discord.Embed(title="Now downloading",
                               color=discord.Colour.dark_purple(), url=url)
