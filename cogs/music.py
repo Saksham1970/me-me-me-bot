@@ -94,7 +94,7 @@ class Music(commands.Cog):
         return " ".join(ls)
 
     def url_get(self, query):  # ! searches and gives out the url of the requested song
-        is_url = query.startswith("https://")
+        is_url = query.startswith("https://") or query.startswith("http://")
 
         if not is_url:
             query_string = urllib.parse.urlencode({"search_query": query})
@@ -323,6 +323,65 @@ class Music(commands.Cog):
         if len(self.queues) == 1:
             thrd = Thread(target=self.player, args=(voice,))
             thrd.start()
+
+#? SEARCH
+    @commands.command()
+    @vc_check()
+    async def search(self, ctx, *, query):
+        async def reactions_add(message, reactions):
+            for reaction in reactions:
+                await message.add_reaction(reaction)
+
+        results = self.url_get(query, all=True)
+        results_filtered: List[str] = []
+        wait_time = 60
+
+        reactions = {"1️⃣": 1, "2️⃣": 2, "3️⃣": 3, "4️⃣": 4, "5️⃣": 5}
+
+        for result in results:
+            if result not in results_filtered:
+                results_filtered.append(result)
+
+        embed = discord.Embed(title="Search returned the following",
+                              color=discord.Colour.dark_green())
+            
+        embed.set_author(name="Me!Me!Me!",
+                         icon_url=self.client.user.avatar_url)
+        embed.set_footer(text=f"Requested By: {ctx.message.author.display_name}",
+                         icon_url=ctx.message.author.avatar_url)
+        embed.set_thumbnail(url=self.music_logo)
+
+        for index, result in enumerate(results_filtered):
+            embed.add_field(name=f"*{index + 1}.*",
+                            value=f"**{self.get_title(result)}**", inline=False)
+            if index == 4:
+                break
+        
+        embed_msg = await ctx.send(embed=embed)
+        embed_msg: discord.Message
+        
+        def check(reaction: discord.Reaction, user):  
+            return user == ctx.author and reaction.message.id == embed_msg.id
+
+        self.client.loop.create_task(reactions_add(embed_msg, reactions.keys()))
+
+        while True:
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time, check=check)
+            except TimeoutError:
+                await ctx.send(f">>> I guess no ones wants to play.")
+                await embed_msg.delete()
+
+                return
+
+            else: 
+                await embed_msg.remove_reaction(str(reaction.emoji), ctx.author)
+
+                if str(reaction.emoji) in reactions.keys():
+                    await embed_msg.delete(delay=3)
+                    play_command = self.client.get_command("play")
+                    await ctx.invoke(play_command, query=results_filtered[reactions[str(reaction.emoji)] - 1])
+
     # ? LOOP
 
     @commands.command(aliases=['lp'])
