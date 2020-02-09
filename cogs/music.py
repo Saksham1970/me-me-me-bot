@@ -324,10 +324,12 @@ class Music(commands.Cog):
             thrd = Thread(target=self.player, args=(voice,))
             thrd.start()
 
-#? SEARCH
+    #? SEARCH
     @commands.command()
     @vc_check()
     async def search(self, ctx, *, query):
+        """Search on youtube, returns 5 videos that match your query, play one of them using reactions"""
+
         async def reactions_add(message, reactions):
             for reaction in reactions:
                 await message.add_reaction(reaction)
