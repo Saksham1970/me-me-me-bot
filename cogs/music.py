@@ -2,107 +2,170 @@ import discord
 from discord.ext import commands, tasks
 from discord.utils import get
 from discord import FFmpegPCMAudio
+
 from os import system
 import os, imp
+imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
+import general as gen
+
 import youtube_dl
 from youtube_dl import YoutubeDL
+
 import asyncio
+from asyncio import sleep
 import urllib.request
 import urllib.parse
 import re
 import lxml
 from lxml import etree
 import shutil
-from colorama import init, Fore, Back, Style
-imp.load_source("general", os.path.join(os.path.dirname(__file__), "../general.py"))
-import general as gen
-from asyncio import sleep
+
 from threading import Thread
 
-
+def vc_check():     
+        async def predicate(ctx):                  #! Check if the user is in vc to run the command
+            voice = get(ctx.bot.voice_clients, guild=ctx.guild)
+            if ctx.author not in voice.channel.members:
+                await ctx.send(f"You either not in a VC or in a wrong VC. Join `{voice.channel.name}`")
+                return False
+            else:
+                return True
+        return commands.check(predicate)
 class Music(commands.Cog):
     ''':musical_note: The title says it all, commands related to music and stuff.'''
 
-    queues = []
-    loop_song = False
-    skip_song = False
-    auto_disconnect_time = 300
-    is_disconnecting = False
-    music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
+    queues = []                                #! stores all the songs info ie the queue in format [url,path,title,thumbnail]
+    loop_song = False                          #! variable used for looping song
+    skip_song = False                          #! variable used for skipping song
+    time_for_disconnect = 300                  #! time for auto disconnect
+    music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"            #! url of the image of thumbnail (vTube)
 
+    #* INIT AND PREREQUISITIES
     def __init__(self, client):
-        self.client = client
-        self.skip_song = False
-        self.loop_song = False
-        self.is_disconnecting = False
-        self.disconnecting_signal =False
-        self.resume_signal=False
-        self.auto_pause.start()
+        self.client = client                    
+        self.auto_pause.start()                 #! starting loops for auto pause and disconnect
+        self.auto_disconnector.start()
 
-    @tasks.loop(seconds=2)
-    async def auto_pause(self):
-        self.resume_signal=False
-        guild = self.client.get_guild(gen.server_id)
-        awoo_channel = self.client.get_channel(gen.awoo_id)
-
-        voice = get(self.client.voice_clients, guild=guild)
-
-        if voice and len(voice.channel.members) <= 1:
-            if voice.is_playing():
-                self.log("Player AUTO paused")
-                voice.pause()
-                await awoo_channel.send(f"Everyone left `{voice.channel.name}`, player paused.")
-                self.disconnecting_signal=False
-                self.auto_resume.start()
-            for i in range(300):
-                   
-                if not self.resume_signal:
-                    await asyncio.sleep(1)
-                else:
-                    break
-            else:
-
-                await self.auto_disconnect()
-                self.auto_resume.stop()
-                
-        
-
-    @tasks.loop(seconds=1)
-    async def auto_resume(self):
-        guild = self.client.get_guild(gen.server_id)
-        awoo_channel = self.client.get_channel(gen.awoo_id)
-
-        voice = get(self.client.voice_clients, guild=guild)
-
-        if voice and voice.is_paused() and len(voice.channel.members) > 1:
-            self.log("Music AUTO resumed")
-            voice.resume()
-            await awoo_channel.send(f"Looks like someone joined `{voice.channel.name}`, player resumed.")
-            self.resume_signal=True
-            self.auto_resume.stop()
-       
-        
-    async def auto_disconnect(self):
-    
-        guild = self.client.get_guild(gen.server_id)
-        voice = get(self.client.voice_clients, guild=guild)
-   
-       
-        awoo_channel = self.client.get_channel(gen.awoo_id)
- 
-        await voice.disconnect()
-
-        await awoo_channel.send(f"I was left all alone, so I left VC `{voice.channel.name}`")
-        self.log(f"Auto disconnected from {voice.channel.name}")
-        self.queues.clear()
-    
-    def log(self, msg):
+    def log(self, msg):                         #! funciton for logging if developer mode is on
         cog_name = os.path.basename(__file__)[:-3]
         debug_info = gen.db_receive("var")["cogs"]
         if debug_info[cog_name] == 1:
             return gen.error_message(msg, gen.cog_colours[cog_name])
+
+    def disconnect_check(self,voice):           #! chech if there is no one listening to the bot
+        flag = False
+        if voice and voice.is_connected():
+            
+            flag = True
+            for user in voice.channel.members:
+                if not user.bot:
+                    flag = False 
+        return flag
+
+    def get_title(self, url: str):              #! gets YouTube title
+        ydl_opts = {
+                'format': 'bestaudio/best',
+                'quiet': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                }],
+            }
+
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+            return info.get('title', None)
+
+    def get_thumbnail(self, url: str):          #! getsYouTube thumbnail
+        return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]      
+    
+    def join_list(self, ls):                    #! joins list
+        return " ".join(ls)
+
+    def url_get(self,query):                    #! searches and gives out the url of the requested song
+        is_url = query.startswith("https://")
+
+        if not is_url:
+            query_string = urllib.parse.urlencode({"search_query": query}) 
+            html_content = urllib.request.urlopen(
+                "http://www.youtube.com/results?" + query_string)
+            search_results = re.findall(    
+                r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+            url = "http://www.youtube.com/watch?v=" + search_results[0]
+        else:
+            url = query
+        return url
+
+    
+
+    def queue_delete(self):                             #! Deleting Queue folder
+         
+        Queue_infile = os.listdir("./Queue")
         
-    def player(self,voice):
+        if Queue_infile:
+            shutil.rmtree("./Queue")
+    #* TASKS 
+    @tasks.loop(seconds=2)
+    async def auto_pause(self):                     #! auto pauses the player if it no one is in the vc
+        guild = self.client.get_guild(gen.server_id)
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+        voice = get(self.client.voice_clients, guild=guild)
+       
+        if self.disconnect_check(voice):
+        
+            if voice.is_playing():
+                self.log("Player AUTO paused")
+                voice.pause()
+                await awoo_channel.send(f"Everyone left `{voice.channel.name}`, player paused.")
+                self.auto_resume.start()
+
+            
+                
+    @tasks.loop(seconds=2)
+    async def auto_disconnector(self):              #! disconnect if player is idle for the disconnecting time provided
+        guild = self.client.get_guild(gen.server_id)   
+        voice = get(self.client.voice_clients, guild=guild)
+        
+        for i in range(self.time_for_disconnect):
+            if voice and not voice.is_playing():
+                await asyncio.sleep(1)
+            else:
+                break
+        else:
+            await self.auto_disconnect()
+            self.auto_resume.stop()
+
+    @tasks.loop(seconds=1)  
+    async def auto_resume(self):                        #! resumes the song if the user re-joins the vc
+        guild = self.client.get_guild(gen.server_id)
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+        voice = get(self.client.voice_clients, guild=guild)
+
+        if voice and voice.is_paused() and not self.disconnect_check(voice):
+            self.log("Music AUTO resumed")
+            voice.resume()
+            await awoo_channel.send(f"Looks like someone joined `{voice.channel.name}`, player resumed.")
+            self.auto_resume.stop()
+       
+        
+    async def auto_disconnect(self):                    #! actual disconnecting code
+    
+        guild = self.client.get_guild(gen.server_id)
+        voice = get(self.client.voice_clients, guild=guild)       
+        awoo_channel = self.client.get_channel(gen.awoo_id)
+ 
+        await voice.disconnect()
+
+        await awoo_channel.send(f"Nothing much to do in the vc so left `{voice.channel.name}`")
+        self.log(f"Auto disconnected from {voice.channel.name}")
+        self.queues.clear()
+    
+    
+    #* MAIN
+
+    #? PLAYER 
+    def player(self,voice):                                 #! checks queue and plays the song accordingly
         def check_queue():
             DIR = os.path.abspath(os.path.realpath("./Queue"))
             length = len(os.listdir(DIR))
@@ -133,41 +196,9 @@ class Music(commands.Cog):
         voice.source = discord.PCMVolumeTransformer(voice.source)
         voice.source.volume = 0.4
 
-    def get_title(self, url: str):
-        ydl_opts = {
-                'format': 'bestaudio/best',
-                'quiet': True,
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                }],
-            }
-
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-
-            return info.get('title', None)
-
-    def get_thumbnail(self, url: str):
-        return "http://img.youtube.com/vi/%s/0.jpg" % url[31:]      
     
-    def join_list(self, ls):
-        return " ".join(ls)
 
-    def url_get(self,query):
-        is_url = query.startswith("https://")
-
-        if not is_url:
-            query_string = urllib.parse.urlencode({"search_query": query}) 
-            html_content = urllib.request.urlopen(
-                "http://www.youtube.com/results?" + query_string)
-            search_results = re.findall(    
-                r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
-            url = "http://www.youtube.com/watch?v=" + search_results[0]
-        else:
-            url = query
-        return url
-
+    #? DOWNLOADER
     def download_music(self,url,name,path,mtype):
 
         queue_path = os.path.abspath(f"{path}/{name}.{mtype}")
@@ -189,11 +220,14 @@ class Music(commands.Cog):
             pass
         return queue_path
 
+    #* COMMANDS
+
+    #? JOIN 
     @commands.command()
     async def join(self, ctx):
         '''Joins the voice channel you are currently in.'''
 
-        try:
+        try:                                                        #! user not in vc
             channel = ctx.message.author.voice.channel
         except:
             await ctx.send("You should be in VC dumbo.")
@@ -201,25 +235,27 @@ class Music(commands.Cog):
        
         voice = get(self.client.voice_clients, guild=ctx.guild)
         
-        if not voice:
+        if not voice:                                                #! bot not in vc
             voice = await channel.connect()
             await ctx.send(f">>> Joined `{channel}`")
             return True
         
         
 
-        elif ctx.author in voice.channel.members:
+        elif ctx.author in voice.channel.members:                      #! bot and user in same vc
             return True
         
-        elif voice and len(voice.channel.members)==1:
+        elif voice and self.disconnect_check(voice):                   #! bot and user in diff vc but bot can switch    
             await voice.move_to(channel)
             await ctx.send(f">>> Joined `{channel}`")
             return True
         
         
-        else:
+        else:                                                           #! bot and user in diff vc and bot cant switch
             await ctx.send(f"I am already connected to a voice channel and someone is listening to the songs. Join {voice.channel.name}")
             return False
+
+     #? PLAY       
     @commands.command()
     async def play(self, ctx, *,query):
         '''Plays the audio of the video in the provided YOUTUBE url.'''
@@ -280,8 +316,9 @@ class Music(commands.Cog):
         if len(self.queues) == 1:
             thrd = Thread(target=self.player, args=(voice,))
             thrd.start()
-            
+    #? LOOP
     @commands.command(aliases=['lp'])
+    @vc_check()
     async def loop(self, ctx,toggle = ""):
         '''Loops the current song, doesn't affect the skip command tho. If on/off not passed it will toggle it.'''
 
@@ -302,8 +339,10 @@ class Music(commands.Cog):
             else:
                 self.loop_song = True
                 await ctx.send(">>> **Looping current song now**")
-    
+    #? RESTART
     @commands.command()
+    @vc_check()
+
     async def restart(self,ctx):
         '''Restarts the current song.'''
 
@@ -313,7 +352,9 @@ class Music(commands.Cog):
         voice.stop()
         await asyncio.sleep(0.1)
         self.loop_song = temp
-                
+    
+
+    #? QUEUE   
     @commands.group(aliases=['q'])
     async def queue(self, ctx):
         '''Shows the current queue.'''
@@ -333,15 +374,13 @@ class Music(commands.Cog):
             
             await ctx.send(embed=embed)
 
-
+    #? QUEUE REPLACE
     @queue.command(aliases=['move'])
+    @vc_check()
     async def replace(self,ctx,change1,change2):
         '''Replaces two queue members.'''
 
-        voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
-            return
+       
         try:
             change1,change2=int(change1),int(change2)
         except:
@@ -355,14 +394,13 @@ class Music(commands.Cog):
             await ctx.send("The numbers you entered are just as irrelevant as your existence.")
             return
 
+    #? QUEUE REMOVE
     @queue.command()
+    @vc_check()
     async def remove(self,ctx,remove):
         '''Removes the Queue member.'''
         
-        voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send(f"You are not even in the VC.")
-            return
+
         try:
             remove=int(remove)
         except:
@@ -377,14 +415,12 @@ class Music(commands.Cog):
             await ctx.send("The number you entered is just as irrelevant as your existence.")
             return
 
+    #? QUEUE NOW
     @queue.command()
+    @vc_check()
     async def now(self,ctx,change):
         '''Plays a queue member NOW.'''
         
-        voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
-            return
         try:
             change=int(change)
         except:
@@ -399,15 +435,14 @@ class Music(commands.Cog):
             return
         await ctx.invoke(self.client.get_command("next"))
         
-   
+   #? PAUSE
     @commands.command(aliases=['p'])
+    @vc_check()
     async def pause(self, ctx):
         '''Pauses the current music.'''
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
-            return
+        
         if voice and voice.is_playing():
             self.log("Player paused")
             voice.pause()
@@ -416,15 +451,14 @@ class Music(commands.Cog):
             self.log("Pause failed")
             await ctx.send(">>> Ya know to pause stuff, stuff also needs to be playing first.")
 
+    #? RESUME
     @commands.command(aliases=['r', 'res'])
+    @vc_check()
     async def resume(self, ctx):
         '''Resumes the current music.'''
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send(f"You are not even in the VC. Join {voice.channel.name}")
-            return
-        
+       
         if voice and voice.is_paused():
             self.log("Music resumed")
             voice.resume()
@@ -433,20 +467,14 @@ class Music(commands.Cog):
             self.log("Resume failed")
             await ctx.send(">>> Ya know to resume stuff, stuff also needs to be paused first.")
 
+    #? STOP
     @commands.command(aliases=['st','yamero'])
+    @vc_check()
     async def stop(self, ctx):
         '''Stops the current music AND clears the current queue.'''
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send("You are not even in the VC.")
-            return
-        
         self.queues.clear()
-        
-
-        #! Deleting Queue folder
-        Queue_infile = os.listdir("./Queue")
         
         if voice and voice.is_playing:
             self.log("Player stopped")
@@ -456,21 +484,17 @@ class Music(commands.Cog):
         else:
             self.log("Stop failed")
             await ctx.send(">>> Ya know to stop stuff, stuff also needs to be playing first.")
-
-        if Queue_infile:
-            shutil.rmtree("./Queue")
-
+        self.queue_delete()
         
        
-
+    #? SKIP
     @commands.command(aliases=['n', 'sk', 'skip'])
+    @vc_check()
     async def next(self, ctx):
         '''Skips the current song and plays the next song in the queue.'''
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send("You are not even in the VC.")
-            return
+       
         if voice and voice.is_playing():
             self.skip_song = True
             self.log("Playing next song")
@@ -479,16 +503,15 @@ class Music(commands.Cog):
         else:
             self.log("Skip failed")
             await ctx.send(">>> Wat you even trynna skip? There is ***nothing to*** skip, I am surrounded by idiots")
-
+   
+    #? LEAVE
     @commands.command()
+    @vc_check()
     async def leave(self, ctx):
         '''Leaves the voice channel.'''
 
         voice = get(self.client.voice_clients, guild=ctx.guild)
-        if ctx.author not in voice.channel.members:
-            await ctx.send("You are not even in the VC.")
-            return
-        
+               
         if voice and voice.is_connected():
             await voice.disconnect()
             await ctx.send(f">>> Left ```{voice.channel.name}```")
@@ -496,7 +519,30 @@ class Music(commands.Cog):
 
         else:  
             await ctx.send(">>> I cannot leave a voice channel I have not joined, thought wouldn't need to explain basic shit like this.")
-            
+
+        self.queue_delete()
+
+    #? VOLUME
+    @commands.command(aliases=["v"])
+    @vc_check()
+    async def volume(self, ctx, volume:int):
+        '''Changes the volume of the player. Volume should be between 0 and 100.'''
+        voice = get(self.client.voice_clients, guild=ctx.guild)
+        if volume < 0 or volume > 100:
+            await ctx.send("Volume needs to be between 0 and 100. Darling.")
+            return
+        voice.source.volume = volume/100
+        await ctx.send(f"Volume is set to {volume}")
+
+    @volume.error
+    async def volume_error(self,ctx,error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(">>> Enter the amount of mesages to be cleared if you dont want spanky / or do (depending on who you are)")
+        elif isinstance(error,commands.UserInputError):
+            await ctx.send(">>> We are numericons' people not Texticons, you traitor.")
+
+    
+    #? DOWNLOAD
     @commands.command(aliases=["dnld"])
     async def download(self, ctx, *,query):
         '''Downloads a song for you, so your pirated ass doesn't have to look for it online.'''
