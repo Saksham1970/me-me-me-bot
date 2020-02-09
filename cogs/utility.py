@@ -94,7 +94,8 @@ class Utility(commands.Cog):
     async def clear_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(">>> Enter the amount of mesages to be cleared if you dont want spanky / or do (depending on who you are)")
-
+        elif isinstance(error,commands.UserInputError):
+            await ctx.send(">>> We are numericons' people not Texticons, you traitor.")
     #* SUGGEST
     @commands.command()
     async def suggest(self,ctx,*,suggestion):

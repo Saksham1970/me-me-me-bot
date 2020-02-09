@@ -15,15 +15,23 @@ class MyHelpCommand(commands.HelpCommand):
     def get_command_signature(self, command):
         """Method to return a commands name and signature"""
 
-        if not command.signature and not command.parent:  # checking if it has no args and isn't a subcommand
+        if not command.signature and isinstance(command,commands.Group):
+            return f'`ME!` `{command.name}` `[subcommands]`'
+
+        elif command.signature and isinstance(command,commands.Group):
+            return f'`ME!` `{command.name}` `{command.signature}` `[subcommands]`'
+
+
+        elif not command.signature and not command.parent:  # checking if it has no args and isn't a subcommand
             return f'`ME!` `{command.name}`'
 
-        if command.signature and not command.parent:  # checking if it has args and isn't a subcommand
+        elif command.signature and not command.parent:  # checking if it has args and isn't a subcommand
             return f'`ME!` `{command.name}` `{command.signature}`'
 
-        if not command.signature and command.parent:  # checking if it has no args and is a subcommand
+        elif not command.signature and command.parent:  # checking if it has no args and is a subcommand
             return f'`ME!` `{command.parent.name}` `{command.name}`'
-
+        
+        
         else:  # else assume it has args a signature and is a subcommand
             return f'`ME!` `{command.parent.name}` `{command.name}` `{command.signature}`'
 
