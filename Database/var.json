@@ -1,13 +1,11 @@
 {
-    "DEV": 0,
     "cogs": {
-        "exp": 0,
-        "fun": 0,
-        "immortal": 0,
-        "meme": 0,
-        "music": 0,
-        "phone": 0,
-        "testing": 0,
-        "utility": 0
-    }
+        "Levels": 0,
+        "Music": 0,
+        "Play": 0,
+        "Voice": 0,
+        "Playlist": 1,
+        "Nsfw": 1
+    },
+    "DEV": 1
 }
