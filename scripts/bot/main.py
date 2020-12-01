@@ -40,6 +40,8 @@ prefix = gen.permu("me! ") + gen.permu("epic ")
 
 OWNERS = [413287145323626496, 580282285002194966]
 
+intents = discord.Intents.all()
+
 status = []
 
 async def determine_prefix(bot, message):
@@ -57,7 +59,7 @@ class Bot(commands.Bot):
         ctx = await self.get_context(message, cls=CustomContext)
         await self.invoke(ctx)
 
-client = Bot(command_prefix=determine_prefix, case_insensitive=True, help_command=MyHelpCommand())
+client = Bot(command_prefix=determine_prefix, case_insensitive=True, help_command=MyHelpCommand(), intents=intents)
 
 # * COG SET UP STUFF
 
