@@ -150,8 +150,10 @@ async def re_init(ctx):
 @client.command(name="close", aliases=["shut"])
 @mod_command()
 async def shut_down(ctx):
+    gen.commit("Bot close commit.")
     await ctx.send("Haha i go away")
-    client.close()
+    await client.close()
+    exit()
 
 @client.command(aliases=["Debug","Development"])
 @mod_command()

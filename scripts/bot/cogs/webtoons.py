@@ -62,6 +62,10 @@ class Webtoons(commands.Cog):
     async def webtoon_name(self, ctx, *, query):
         webtoons = Webtoon.search(query)
         
+        if webtoons == []:
+            await ctx.send("No webtoons found.")
+            return
+        
         webtoons_to_ratio = {webtoon: fuzz.ratio(webtoon.title.lower(), query) for webtoon in webtoons}
         max_match = max(list(webtoons_to_ratio.values()))
         webtoon = None
