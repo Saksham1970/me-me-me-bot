@@ -152,8 +152,9 @@ async def re_init(ctx):
 async def shut_down(ctx):
     gen.commit("Bot close commit.")
     await ctx.send("Haha i go away")
+    print(f"Bot closed on {datetime.now()}")
     await client.close()
-    exit()
+    quit()
 
 @client.command(aliases=["Debug","Development"])
 @mod_command()
@@ -251,7 +252,7 @@ async def on_ready():
 @client.event
 async def on_disconnect():
     gen.commit(f"| Bot close commit |")
-    sleep(5)
+    await sleep(5)
     quit()
     
 #* WELCOME MESSAGE AND ADD NECESSARY EMOJIS OT GUILD WHEN BOT JOINS A GUILD
