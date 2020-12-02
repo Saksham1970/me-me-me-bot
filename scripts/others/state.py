@@ -7,6 +7,7 @@ from general import db_receive, db_update, DBPATH
 import pickle
 from json import JSONDecodeError
 from inspect import signature
+from copy import deepcopy
 
 def make_db_if_not_exists(path: str):
     if not os.path.exists(path):
@@ -20,16 +21,24 @@ class PKLProperty:
         
     def __init__(self, name, default=None):
         self.name = name
-        self.default = default
+        self.default = deepcopy(default)
         
+    #default getting changed somehow without triggering the print statement in setter
     
     def __get__(self, instance, owner):
         d = self.data
         if instance.guild not in self.data:
             self.new_entry(entry=instance.guild)
             d = self.data
-      
-        return d[instance.guild][self.name] if self.name in d[instance.guild] else self.default   
+            
+        if self.name in d[instance.guild]:
+            return d[instance.guild][self.name]
+        
+        else:
+            try:
+                self.default.clear()
+            finally:
+                return self.default  
       
     def __set__(self, instance, value):
         new = self.data
@@ -37,7 +46,6 @@ class PKLProperty:
             self.new_entry(entry=instance.guild)
             
         new = self.data
-        
         new[instance.guild][self.name] = value
         self.set_data(new_db=new) 
     
@@ -65,7 +73,7 @@ class JSONProperty:
           
     def __init__(self, name, db_scope, is_unique, default=None, encoder=None, decoder=None):
         self.name = name
-        self.default = default
+        self.default = deepcopy(default)
         self.is_unique = is_unique
         
         self.db_name = f"{db_scope}-states" if is_unique else (db_scope + "-states" + "----{id}") 
@@ -110,7 +118,10 @@ class JSONProperty:
                 else:
                     raise Exception("Faulty Decoder, decoder must either take 1 or 2 arguments.")
         else:
-            return self.default
+            try:
+                self.default.clear()
+            finally:
+                return self.default
       
     def __set__(self, instance, value):
         self.unique_num = instance.unique_num if not self.is_unique else None
@@ -335,13 +346,17 @@ class UserState:
         self.identifier = str(user.id)
 
 class TempState:
+    
+    def empty_list():
+        return []
+    
     time = PKLProperty(name="time", default=0)
     cooldown = PKLProperty(name="cooldown", default=0)
     
-    queue = PKLProperty(name="queue", default=[])
-    full_queue = PKLProperty(name="full_queue", default=[])
-    queue_ct = PKLProperty(name="queue_ct", default=[])
-    full_queue_ct = PKLProperty(name="full_queue_ct", default=[])
+    queue = PKLProperty(name="queue", default=empty_list())
+    full_queue = PKLProperty(name="full_queue", default=empty_list())
+    queue_ct = PKLProperty(name="queue_ct", default=empty_list())
+    full_queue_ct = PKLProperty(name="full_queue_ct", default=empty_list())
     
     loop_song = PKLProperty(name="loop_song", default=False)
     loop_q = PKLProperty(name="loop_q", default=False)
@@ -353,8 +368,8 @@ class TempState:
     shuffle_var = PKLProperty(name="shuffle_var",default = 0)
     
     playing = PKLProperty(name="playing", default=False)
-    old_queue_embed = PKLProperty(name="old_queue_embed", default=[])
-    old_queue_queue = PKLProperty(name="old_queue_queue", default=[])
+    old_queue_embed = PKLProperty(name="old_queue_embed", default=empty_list())
+    old_queue_queue = PKLProperty(name="old_queue_queue", default=empty_list())
 
     paused_by_handler = PKLProperty(name = "paused_by_handler", default= False)
     voice_handler_time = PKLProperty(name = "voice_handler_time", default=0)
