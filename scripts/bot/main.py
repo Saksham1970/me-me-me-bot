@@ -50,7 +50,10 @@ async def determine_prefix(bot, message):
         prefixes = []
         for i in range(len(state_prefix)):
             prefixes += gen.permu(state_prefix[i])
-        return prefixes if prefixes is not None else prefix
+        if prefixes== []:
+            return prefix
+        else:
+            return prefixes
     else:
         return prefix
     
