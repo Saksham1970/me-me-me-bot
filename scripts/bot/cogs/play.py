@@ -40,6 +40,7 @@ def clear_pl(state): #! clears empty playlists
                 clear_pl(state) 
 
 class Play(commands.Cog):
+    ":play_pause: Playing music(or anything really) from YouTube"
     
     music_logo = "https://cdn.discordapp.com/attachments/623969275459141652/664923694686142485/vee_tube.png"
    

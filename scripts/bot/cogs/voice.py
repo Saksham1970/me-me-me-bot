@@ -120,6 +120,7 @@ def vote(votes_required: float, vote_msg: str, yes_msg: str, no_msg: str, vote_d
     return commands.check(predicate=predicate)
     
 class Voice(commands.Cog):
+    ":speaker: Controling the currently playing song, restart, pause etc."
     
     def __init__(self, client):
         self.client = client      

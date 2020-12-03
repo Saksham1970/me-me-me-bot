@@ -11,6 +11,8 @@ from state import GuildState,TempState
 
 
 class Juke(commands.Cog):
+    ":cd: This has like 1 command and it sets up the juke box."
+    
     juke_box_url = "https://media.discordapp.net/attachments/623969275459141652/680480864316030996/juke_box.jpg"
     we_tube_bg_url = "https://media.discordapp.net/attachments/623969275459141652/752798002912952360/we_tube_logo.png?width=1353&height=609"
     def __init__(self, client):
