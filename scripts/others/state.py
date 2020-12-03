@@ -1,6 +1,6 @@
 import os
 import discord
-from typing import Union
+from typing import Type, Union
 from discord.utils import get
 from discord.ext.commands import Context
 from general import db_receive, db_update, DBPATH
@@ -23,6 +23,11 @@ class PKLProperty:
         self.name = name
         self.default = deepcopy(default)
         
+        try:
+            self.is_default_empty = len(self.default) == 0
+        except TypeError:
+            self.is_default_empty = None
+        
     #default getting changed somehow without triggering the print statement in setter
     
     def __get__(self, instance, owner):
@@ -36,7 +41,8 @@ class PKLProperty:
         
         else:
             try:
-                self.default.clear()
+                if self.is_default_empty == True:
+                    self.default.clear()
             finally:
                 return self.default  
       
@@ -84,6 +90,11 @@ class JSONProperty:
         if decoder is not None and not callable(decoder):
             raise AttributeError("'decoder' must be a callable")
         
+        try:
+            self.is_default_empty = len(self.default) == 0
+        except TypeError:
+            self.is_default_empty = None
+        
         self.encoder = encoder
         self.decoder = decoder
         
@@ -119,7 +130,8 @@ class JSONProperty:
                     raise Exception("Faulty Decoder, decoder must either take 1 or 2 arguments.")
         else:
             try:
-                self.default.clear()
+                if self.is_default_empty == True:
+                    self.default.clear()
             finally:
                 return self.default
       
