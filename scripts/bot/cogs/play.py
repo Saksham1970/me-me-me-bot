@@ -198,7 +198,7 @@ class Play(commands.Cog):
                     if ch == "disabled":
                         pass
                     else:
-                         await ctx.send(">>> All songs played. No more songs to play.")
+                        await ctx.send(">>> All songs played. No more songs to play.")
                 self.log("Ending the queue")
                 if ctx.author.guild in gen.time_l:
                     gen.time_l.remove(ctx.guild)
@@ -216,6 +216,12 @@ class Play(commands.Cog):
             results = YoutubeVideo.from_query(query, 5)
         else:
             results = YoutubePlaylist.from_query(query, 5)
+            
+        if len(results) == 1:
+            return results[0]
+        elif len(results) == 0:
+            await ctx.send(f"No results returnded for `{query}`")
+            return
 
         wait_time = 60
 

@@ -182,10 +182,35 @@ class JSONProperty:
         db_update(name=self.db_name, db=new_db)
         
 class GuildState:
+    
+    def channel_encoder(channel):
+        if channel == "disabled":
+            return channel
+        else:
+            return str(channel.id)
+        
+    def role_encoder(role):
+        if role == "disabled":
+            return role
+        else:
+            return str(role.id)
+        
+    def channel_decoder(self, _id):
+        if _id == "disabled":
+            return _id
+        else:
+            return self.guild.get_channel(channel_id=int(_id))
+        
+    def role_decoder(self, _id):
+        if _id == "disabled":
+            return _id
+        else:
+            return self.guild.get_role(role_id=int(_id))
+    
     class_properties = {"db_scope":"guild", "is_unique":True}
     
-    channel_properties = {"encoder": lambda channel: str(channel.id), "decoder": lambda self, _id: self.guild.get_channel(channel_id=int(_id))}
-    role_properties = {"encoder": lambda role: str(role.id), "decoder": lambda self, _id: self.guild.get_role(role_id=int(_id))}
+    channel_properties = {"encoder": channel_encoder, "decoder": channel_decoder}
+    role_properties = {"encoder": role_encoder, "decoder": lambda self, _id: role_decoder}
     
     rank_roles = JSONProperty(**class_properties, name="rank_roles", default=[])
     rank_levels = JSONProperty(**class_properties, name="rank_levels", default=[])
