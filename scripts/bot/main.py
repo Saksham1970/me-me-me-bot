@@ -251,12 +251,12 @@ async def on_ready():
     status = cycle(status)
     print('Bot is ready as sef!')
 
-#* ON DISCONNECT 
-@client.event
-async def on_disconnect():
-    gen.commit(f"| Bot close commit |")
-    await sleep(5)
-    quit()
+# #* ON DISCONNECT 
+# @client.event
+# async def on_disconnect():
+#     gen.commit(f"| Bot close commit |")
+#     await sleep(5)
+#     quit()
     
 #* WELCOME MESSAGE AND ADD NECESSARY EMOJIS OT GUILD WHEN BOT JOINS A GUILD
 @client.event
