@@ -124,7 +124,7 @@ class Voice(commands.Cog):
     
     def __init__(self, client):
         self.client = client      
-        self.auto_voice_handler.start()
+        # self.auto_voice_handler.start()
 
         if self.qualified_name in gen.cog_cooldown:
             self.cooldown = gen.cog_cooldown[self.quailifed_name]
