@@ -190,7 +190,7 @@ class GuildState:
             return str(channel.id)
         
     def role_encoder(role):
-        if role == "disabled":
+        if role == "disabled" or role is None:
             return role
         else:
             return str(role.id)
@@ -202,7 +202,7 @@ class GuildState:
             return self.guild.get_channel(channel_id=int(_id))
         
     def role_decoder(self, _id):
-        if _id == "disabled":
+        if _id == "disabled" or _id is None:
             return _id
         else:
             return self.guild.get_role(role_id=int(_id))
