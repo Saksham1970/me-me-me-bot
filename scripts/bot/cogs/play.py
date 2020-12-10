@@ -166,7 +166,7 @@ class Play(commands.Cog):
                     voice.source = discord.PCMVolumeTransformer(voice.source)
                     
                 except Exception as e:
-                    
+                    print(e.error)
                     self.log(e)
                     self.log(f"{queue[0].title} cannot be played.")
                     

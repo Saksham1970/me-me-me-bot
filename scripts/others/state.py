@@ -184,7 +184,7 @@ class JSONProperty:
 class GuildState:
     
     def channel_encoder(channel):
-        if channel == "disabled":
+        if channel == "disabled" or channel is None:
             return channel
         else:
             return str(channel.id)
@@ -196,7 +196,7 @@ class GuildState:
             return str(role.id)
         
     def channel_decoder(self, _id):
-        if _id == "disabled":
+        if _id == "disabled" or _id is None:
             return _id
         else:
             return self.guild.get_channel(channel_id=int(_id))
