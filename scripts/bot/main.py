@@ -249,6 +249,8 @@ async def on_ready():
     global status
     status = list(client.cogs.keys())
     status = cycle(status)
+    
+    change_status.start()
     print('Bot is ready as sef!')
 
 # #* ON DISCONNECT 
