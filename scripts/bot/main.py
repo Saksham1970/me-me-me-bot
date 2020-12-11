@@ -248,6 +248,7 @@ async def on_ready():
     
     global status
     status = list(client.cogs.keys())
+    status = list(map(lambda i: "epic help " + str(i), status))
     status = cycle(status)
     
     change_status.start()
