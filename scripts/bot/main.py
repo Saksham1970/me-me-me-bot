@@ -320,9 +320,12 @@ async def on_command_error(ctx, error: discord.DiscordException):
     else:
         trace = traceback.format_exception(type(error), error, error.__traceback__)
     
-        with open(LOG_FILE, "a") as log_file:
+        with open(LOG_FILE, "r+") as log_file:
+            content = log_file.read()
+            log_file.seek(0, 0)
             log_file.write(f"\n\n\nException occured on {str(datetime.now())} => \n")
             log_file.writelines(trace)
+            log_file.write(content)
             
         gen.error_message(error)   
 
