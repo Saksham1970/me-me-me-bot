@@ -237,7 +237,7 @@ class Nsfw(commands.Cog):
     #* MAIN
 
     @commands.command(aliases=["4k"])
-    @commands.cooldown(rate=1, per=30, type=commands.BucketType.user)
+    @commands.cooldown(rate=1, per=cooldown, type=commands.BucketType.user)
     @nsfw_command()
     async def porn(self, ctx):   #! sends 4k porn pics
         '''4K, hacc certified pics'''
