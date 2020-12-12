@@ -230,6 +230,11 @@ class Misc(commands.Cog):
             vid = TempState(ctx.guild).queue[0]
         if not os.path.exists(self.DPATH):
             os.makedirs(self.DPATH)
+            
+        if vid.seconds > 420:
+            await ctx.send("Song you requested was too mega for me uwu.")
+            return
+            
         async with aiohttp.ClientSession() as cs:
             async with cs.get(vid.audio_url) as r:
 

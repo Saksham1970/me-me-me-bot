@@ -32,6 +32,8 @@ COGS_PATH = os.path.join(os.path.dirname(__file__), "cogs")
 WELCOME_MSG = """
 asasas
 """
+
+LOG_FILE = os.path.abspath("logs.txt")
 EMOJIS_PATH = os.path.abspath("./assets/emojis")
 DB_PATH = os.path.abspath("./Database")
 BACKUP_PATH = os.path.abspath("./Backup")
@@ -62,43 +64,32 @@ class Bot(commands.Bot):
         ctx = await self.get_context(message, cls=CustomContext)
         await self.invoke(ctx)
 
-client = Bot(command_prefix=determine_prefix, case_insensitive=True, help_command=MyHelpCommand(), intents=intents)
+client = Bot(command_prefix=determine_prefix, case_insensitive=True, help_command=MyHelpCommand(), intents=intents, owner_ids=OWNERS)
 
 # * COG SET UP STUFF
 
 is_cog = lambda filename: filename.endswith(".py") and not filename.endswith("-d.py")
 
-def mod_command():
-    async def predicate(ctx):
-        channel = ctx.message.channel
-        if ctx.author.id in OWNERS:
-            return True
-        else:
-            await channel.send("Really?")
-            return False
-    return commands.check(predicate)
-
- 
 @client.command(aliases=["enable"])
-@mod_command()
+@commands.is_owner()
 async def load(ctx, extension):
     client.load_extension(f"cogs.{extension}")
     await ctx.send(f">>> {extension.capitalize()} commands are now ready to deploy.")
     
 @client.command(aliases=["enable_all"])
-@mod_command()
+@commands.is_owner()
 async def load_all(ctx):
     cog_load_startup()
 
 @client.command(aliases=["disable"])
-@mod_command()
+@commands.is_owner()
 async def unload(ctx, extension):
     
     client.unload_extension(f"cogs.{extension}")
     await ctx.send(f">>> {extension.capitalize()} commands were stopped, Master. ")
 
 @client.command(aliases=["disable_all"])
-@mod_command()
+@commands.is_owner()
 async def unload_all(ctx):
     
     for filename in os.listdir(COGS_PATH):
@@ -106,7 +97,7 @@ async def unload_all(ctx):
             client.unload_extension(f"cogs.{filename[:-3]}")
 
 @client.command(aliases=["refresh"])
-@mod_command()
+@commands.is_owner()
 async def reload(ctx, extension):
     client.unload_extension(f"cogs.{extension}")
     client.load_extension(f"cogs.{extension}")
@@ -115,7 +106,7 @@ async def reload(ctx, extension):
 
 
 @client.command(aliases=["refresh_all"])
-@mod_command()
+@commands.is_owner()
 async def reload_all(ctx):
     
     for filename in os.listdir(COGS_PATH):
@@ -132,7 +123,7 @@ def cog_load_startup():
 
 # * BACKING UP AND COMMIT STUFF
 @client.command(aliases=["commit", "baccup"])
-@mod_command()
+@commands.is_owner()
 async def backup(ctx, *, msg=""):
     done = gen.commit(f"| Manual - {msg} |")
     if not msg == "" and done:
@@ -143,15 +134,27 @@ async def backup(ctx, *, msg=""):
         await ctx.send(">>> Couldn't Backup Since Commit upto the mark.")
 
 @client.command(aliases = ["reboot"])
-@mod_command()
+@commands.is_owner()
 async def re_init(ctx):
     
     await ctx.invoke(client.get_command("unload_all"))
     await ctx.send("DONE")
     os.execv(sys.executable, ['python'] + sys.argv)  
     
+@client.command(name="log")
+@commands.is_owner()
+async def send_log(ctx: commands.Context):
+    
+    with open(LOG_FILE) as f:
+        if f.read() in ["", "\n"]:
+            await ctx.send("Logs are empty.")
+            return
+    
+    logs = discord.File(LOG_FILE, filename="logs")
+    await ctx.send("Good luck", file=logs)
+    
 @client.command(name="close", aliases=["shut"])
-@mod_command()
+@commands.is_owner()
 async def shut_down(ctx):
     gen.commit("Bot close commit.")
     await ctx.send("Haha i go away")
@@ -160,7 +163,7 @@ async def shut_down(ctx):
     quit()
 
 @client.command(aliases=["Debug","Development"])
-@mod_command()
+@commands.is_owner()
 async def develop(ctx , on_off, cog=""):
 
     var = gen.db_receive("var")
@@ -281,17 +284,16 @@ async def on_guild_join(guild: discord.Guild):
 # * COMMAND NOT FOUND
 @client.event
 async def on_command_error(ctx, error: discord.DiscordException):
+    
     if isinstance(error, commands.CommandNotFound):
-        message = await ctx.send(">>> That isn't even a command, you have again proven to be a ME!stake.")
-        try:
-            await message.delete()
-        except:
-            pass
+        await ctx.send(">>> That isn't even a command, you have again proven to be a ME!stake.", delete_after=5)
+
     elif isinstance(error, commands.CommandOnCooldown):
             embed = discord.Embed(title="Woah woah, gonnae wait??",
                                   color = discord.Color.red(),
                                    description=f"We have cooldowns here, try again after `{round(error.retry_after, 1)}s` ")
             await ctx.send(embed=embed)
+            
     elif isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(title="Missing Permissions",
                                   color = discord.Color.red())
@@ -304,10 +306,28 @@ async def on_command_error(ctx, error: discord.DiscordException):
         embed.description = description
         
         await ctx.send(embed=embed)
+        
+        
+    elif isinstance(error, commands.MissingRequiredArgument):
+        embed = discord.Embed(title="Missing Required Arguments",
+                                  color = discord.Color.red())
+        
+        description = f"You did not provide the `{error.param.name}`."
+        
+        embed.description = description
+        
+        await ctx.send(embed=embed)
     else:
-        if not isinstance(error,commands.MissingRequiredArgument):
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-            gen.error_message(error)   
+        trace = traceback.format_exception(type(error), error, error.__traceback__)
+    
+        with open(LOG_FILE, "r+") as log_file:
+            content = log_file.read()
+            log_file.seek(0, 0)
+            log_file.write(f"\n\n\nException occured on {str(datetime.now())} => \n")
+            log_file.writelines(trace)
+            log_file.write(content)
+            
+        gen.error_message(error)   
 
 
 client.run(TOKEN)
