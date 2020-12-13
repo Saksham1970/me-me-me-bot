@@ -21,6 +21,7 @@ from zipfile import ZipFile
 from datetime import datetime
 import requests
 from time import time as current_time
+import pytz
 
 #? FILES
 from Help import MyHelpCommand
@@ -172,7 +173,7 @@ async def send_log(ctx: commands.Context):
 async def shut_down(ctx):
     gen.commit("Bot close commit.")
     await ctx.send("Haha i go away")
-    print(f"Bot closed on {datetime.now()}")
+    print(f"Bot closed on {datetime.now(tz=gen.TIMEZONE)}")
     await client.close()
     quit()
 
@@ -227,9 +228,9 @@ async def develop(ctx , on_off, cog=""):
 async def offline_backup():
     if offline_backup.current_loop > 0:
         to_be_zipped = [file for file in os.listdir(DB_PATH) if file.endswith(".json")]
-        zip_name = str(datetime.now()).replace(" ", "_").replace(":", "").replace("-", "").split(".")[0]
+        zip_name = str(datetime.now(tz=gen.TIMEZONE)).replace(" ", "_").replace(":", "").replace("-", "").split(".")[0]
         
-        print(f"Starting offline backup now for {datetime.now()}...")
+        print(f"Starting offline backup now for {datetime.now(tz=gen.TIMEZONE)}...")
         
         start = current_time()
         
@@ -331,13 +332,17 @@ async def on_command_error(ctx, error: discord.DiscordException):
         embed.description = description
         
         await ctx.send(embed=embed)
+    
+    elif isinstance(error, commands.CheckFailure):
+        pass
+    
     else:
         trace = traceback.format_exception(type(error), error, error.__traceback__)
     
         with open(LOG_FILE, "r+") as log_file:
             content = log_file.read()
             log_file.seek(0, 0)
-            log_file.write(f"\n\n\nException occured on {str(datetime.now())} => \n")
+            log_file.write(f"\n\n\nException occured on {str(datetime.now(tz=gen.TIMEZONE))} => \n")
             log_file.writelines(trace)
             log_file.write(content)
             
