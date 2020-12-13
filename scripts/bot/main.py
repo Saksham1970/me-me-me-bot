@@ -1,4 +1,5 @@
 from asyncio.tasks import sleep
+from discord import audit_logs
 from dotenv import load_dotenv #? ENV
 load_dotenv()
 
@@ -18,6 +19,7 @@ from asyncio import sleep
 import traceback  
 from zipfile import ZipFile
 from datetime import datetime
+import requests
 from time import time as current_time
 
 #? FILES
@@ -145,13 +147,25 @@ async def re_init(ctx):
 @commands.is_owner()
 async def send_log(ctx: commands.Context):
     
-    with open(LOG_FILE) as f:
-        if f.read() in ["", "\n"]:
-            await ctx.send("Logs are empty.")
-            return
+    if not os.path.exists(LOG_FILE):
+        await ctx.send("Logs are empty.")
+        return
     
-    logs = discord.File(LOG_FILE, filename="logs")
-    await ctx.send("Good luck", file=logs)
+    with open(LOG_FILE) as f:
+        content = f.read() 
+        
+    if content in ["", "\n"]:
+        await ctx.send("Logs are empty.")
+        return
+    
+    url = "https://hastebin.com/documents"
+    response = requests.post(url, data=content)
+    try:
+        the_page = "https://hastebin.com/raw/" + response.json()['key']
+        await ctx.send(f"Here are the logs, good luck, {the_page}")
+    except Exception as e:
+        await ctx.send(f"Error while exporting to hastebin, take the file itself", file=discord.File(LOG_FILE)) 
+        
     
 @client.command(name="close", aliases=["shut"])
 @commands.is_owner()
