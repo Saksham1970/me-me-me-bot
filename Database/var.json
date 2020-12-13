@@ -4,8 +4,8 @@
         "Music": 0,
         "Play": 0,
         "Voice": 0,
-        "Playlist": 1,
-        "Nsfw": 1
+        "Playlist": 0,
+        "Nsfw": 0
     },
-    "DEV": 1
+    "DEV": 0
 }
