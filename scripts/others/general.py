@@ -17,7 +17,7 @@ DBPATH = os.path.join(
     os.path.dirname(__file__),'../../Database')
 DBPATH = os.path.abspath(DBPATH)
 
-TIMEZONE = pytz.timezone("Asia / Calcutta")
+TIMEZONE = pytz.timezone("Asia/Calcutta")
  
 roles = ['Prostitute', 'Rookie', 'Adventurer', 'Player', 'Hero']
 
