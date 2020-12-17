@@ -324,14 +324,7 @@ async def on_command_error(ctx, error: discord.DiscordException):
         
         
     elif isinstance(error, commands.MissingRequiredArgument):
-        embed = discord.Embed(title="Missing Required Arguments",
-                                  color = discord.Color.red())
-        
-        description = f"You did not provide the `{error.param.name}`."
-        
-        embed.description = description
-        
-        await ctx.send(embed=embed)
+        pass
     
     elif isinstance(error, commands.CheckFailure):
         pass
