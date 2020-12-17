@@ -40,7 +40,7 @@ class Meme(commands.Cog):
         subr = reddit.subreddit(subreddit)
         
         if subr.over18 and not ctx.channel.is_nsfw():
-            await ctx.send(f"The `{subr.name}` is marked NSFW, so call the command in a NSFW channel instead.")
+            await ctx.send(f"The `{subreddit}` is marked NSFW, so call the command in a NSFW channel instead.")
             return
         
         is_channel_nsfw = ctx.channel.is_nsfw()
