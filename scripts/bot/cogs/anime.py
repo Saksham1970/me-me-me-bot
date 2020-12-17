@@ -1,12 +1,13 @@
 import sys
 import os
+
+from discord.ext.commands.cooldowns import BucketType
 sys.path.append(os.path.abspath("./scripts/others/"))
 
 import discord
 import asyncio
 from random import choice
 from discord.ext import commands
-from math import floor
 from MAL import Anime as AnimeObject, MALConfig
 from dotenv import load_dotenv
 load_dotenv()
@@ -30,13 +31,14 @@ class Anime(commands.Cog):
         result = ""
         for i, j in enumerate(l):
             if not i == len(l) - 1:
-                result += f"`{j}`, "
+                result += f"`{j}` | "
             else:
                 result += f"`{j}`"
                 
         return result
         
     @commands.command()
+    @commands.cooldown(rate=3, per=4, type=BucketType.member)
     async def anime(self, ctx, *, query):
         result = list(AnimeObject.search(query=query, limit=10, basic=True, config=Anime.config))
         if len(result) == 0:
@@ -51,29 +53,37 @@ class Anime(commands.Cog):
         search_message = await ctx.send(msg_content)
         
         def check(message) -> bool:
-            return message.author == ctx.author
+            return message.author == ctx.author and (message.contect.isdigit() or message.content.lower() == "c")
         
         the_chosen_id = None
+        errors_commited = 0
         
         while True:
+              
+            if errors_commited >= 2:
+                await ctx.send("Bruh you are too retarded I give up")
+                return
+                
             try:
                 response = await self.client.wait_for("message", check=check, timeout=30)
             except asyncio.TimeoutError:
-                await ctx.send("I got no response sadly, try refining your search term if you did'nt find your anime.")
+                await ctx.send("I got no response sadly, try refining your search term if you didn't find your anime.")
                 return
             else:
                 response_content = response.content.lower()
-                
+              
                 if response_content == "c":
-                    await search_message.edit(content="Command cancelled, try refining your search term if you did'nt find your anime.")
-                    break
+                    await search_message.edit(content="Command cancelled, try refining your search term if you didn't find your anime.")
+                    return
                 
-                elif not response_content.isnumeric() or not floor(int(response_content)) == int(response_content) or int(response_content) <= 0:
+                elif int(response_content) <= 0:
                     await ctx.send("Respond with a natural number, should have been obvious enuff.")
+                    errors_commited += 1
                     continue
                 
                 elif int(response_content) > len(result):
                     await ctx.send("I dont even have that many results bro, try again.")
+                    errors_commited += 1
                     continue
                 
                 else:

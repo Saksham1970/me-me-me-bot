@@ -1,6 +1,9 @@
 from typing import List
 import requests
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
 class MALConfig:
     def __init__(self, client_id, client_secret, access_token, refresh_token) -> None:
         self.CLIENT_ID = client_id
@@ -40,13 +43,13 @@ class Anime:
         self._id = _id
         self._config = config
         self.reload()
+        print(self._data)
         
     @classmethod
     def from_name(cls, query: str, config: MALConfig):
         request = config.get("https://api.myanimelist.net/v2/anime", params={"q": query, "limit" : 1})
         anime_id = str(request.json()["data"][0]["node"]["id"])
-        
-        return cls(_id=anime_id)
+        return cls(_id=anime_id, config=config)
     
     @classmethod
     def search(cls, query: str, config: MALConfig, limit: int = 5, basic=True):
@@ -189,3 +192,11 @@ class Anime:
     @property
     def url(self) -> str:
         return f"https://myanimelist.net/anime/{self._id}/{self.english_title.replace(' ', '_')}"
+    
+config = MALConfig(
+    client_id = os.environ.get("MAL_CLIENT_ID"),
+    client_secret = os.environ.get("MAL_CLIENT_SECRET"),
+    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjhmN2FlODUzYzQwYzVhZWVhYjk2NDEzNDNjMGRmMmYwMjRmMjljNTU3ZWM3YjJkYTczOWYwZDAzMDU5NDNjYjUwZjIxNTk2ZGE4YjFiY2ZlIn0.eyJhdWQiOiI1NjA5ZmYyYzcwMGYwODFjN2ZhODZlNjM2MjhmOTA5ZSIsImp0aSI6IjhmN2FlODUzYzQwYzVhZWVhYjk2NDEzNDNjMGRmMmYwMjRmMjljNTU3ZWM3YjJkYTczOWYwZDAzMDU5NDNjYjUwZjIxNTk2ZGE4YjFiY2ZlIiwiaWF0IjoxNjA4MDk3NDE4LCJuYmYiOjE2MDgwOTc0MTgsImV4cCI6MTYxMDc3NTgxOCwic3ViIjoiODQyMjI1NSIsInNjb3BlcyI6W119.nL5SV9O7sZuAW5k29g-qf-fRFgKOrKlAZIFmsxwYk-4Hs7IK_CwLJRAtz5x_Fz13RHoDPbmQz7gUlnhKJ56M4iLSxdPr0Bnovl3STCfbIdFy1YSvPKwTqy4YjIYnMlGFDzZ-cBhcgCF-wA7H4vRgM1BFwae-vLY4kM59vgkm2hyUatREV7USJ02Zpmlw0kc7-co3Vg3Y0BI9c0-WRY-kxkHLADlXO7DlUQhlQf19fyMvJwlbxmGyIZHX7AkaksFarDxRiF7y5wWEeSLunm7ZkFqwS5xXUJip1jiuugzSZRod1P7wFEoIvxJMysUo3Kl0tCW5g5TYzDtZv8nmzdP9rw",
+    refresh_token = os.environ.get("MAL_REFRESH_TOKEN")
+    )
+Anime.from_name("Tenkuu Danzai Skelter+Heaven", config)

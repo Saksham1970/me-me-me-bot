@@ -351,9 +351,7 @@ class Nsfw(commands.Cog):
                 reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time,
                                                              check=lambda reaction, user: user == ctx.author and reaction.message.id == embed_msg.id)
             except TimeoutError:
-                await ctx.send(f">>> Everyone done reading `{doujin_id}`, so I deleted it.")
-                await embed_msg.delete()
-
+                await embed_msg.clear_reactions()
                 return
 
             else:
