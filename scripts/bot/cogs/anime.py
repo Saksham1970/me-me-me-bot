@@ -53,15 +53,15 @@ class Anime(commands.Cog):
         search_message = await ctx.send(msg_content)
         
         def check(message) -> bool:
-            return message.author == ctx.author and (message.contect.isdigit() or message.content.lower() == "c")
+            return message.author == ctx.author and ((message.content.isdigit() or message.content[1:].isdigit()) or message.content.lower() == "c")
         
         the_chosen_id = None
         errors_commited = 0
         
         while True:
               
-            if errors_commited >= 2:
-                await ctx.send("Bruh you are too retarded I give up")
+            if errors_commited >= 3:
+                await search_message.edit(content="Bruh you are too retarded I give up")
                 return
                 
             try:
