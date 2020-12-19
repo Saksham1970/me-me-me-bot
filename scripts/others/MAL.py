@@ -47,12 +47,12 @@ class MALConfig:
     
 class abc:
     
-    def __init__(self, data) -> None:
+    def __init__(self, data: dict) -> None:
         self._data = data
         
     @property
     def english_title(self) -> str:
-        return self._data["title"]
+        return self._data["title"] if "title" in self._data else "NA"
      
     @property
     def japenese_title(self) -> str:
@@ -63,7 +63,7 @@ class abc:
     
     @property
     def background(self) -> str:
-        return self._data["background"]
+        return self._data["background"] if "background" in self._data else "NA"
     
     @property
     def broadcast(self) -> str:
@@ -202,7 +202,7 @@ class Anime(abc):
     
     @property
     def age_rating(self) -> str:
-        return self._data["rating"]
+        return self._data["rating"] if "rating" in self._data else "NA"
         
     
 class Manga(abc):
