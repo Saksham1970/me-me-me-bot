@@ -42,7 +42,13 @@ class Weeb(commands.Cog):
         embed_1.set_author(name="Me!Me!Me!", icon_url=self.client.user.avatar_url)
         embed_1.set_thumbnail(url=Weeb.MAL_LOGO)
         embed_1.set_image(url=weeb_abc.cover)
-        embed_1.description = weeb_abc.synopsis + "\n\n" + weeb_abc.background
+        
+        description = weeb_abc.synopsis + "\n\n" + weeb_abc.background
+        
+        if len(description) > 2048:
+            embed_1.description = description[:2044] + "..."
+        else:
+            embed_1.description = description
         
         embed_2 = discord.Embed(title=f"{weeb_abc.english_title} `{weeb_abc.japenese_title}`", url=weeb_abc.url, color=discord.Colour.red())
         embed_2.set_author(name="Me!Me!Me!", icon_url=self.client.user.avatar_url)
