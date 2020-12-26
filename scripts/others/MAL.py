@@ -111,7 +111,7 @@ class abc:
     
     @property
     def score(self) -> float:
-        return float(self._data["mean"])
+        return float(self._data["mean"]) if "mean" in self._data else 0
     
     @property
     def popularity(self) -> int:
@@ -119,7 +119,7 @@ class abc:
                    
     @property
     def rank(self) -> int:
-        return int(self._data["rank"])
+        return int(self._data["rank"]) if "rank" in self._data else 0
     
     @property
     def status(self) -> str:

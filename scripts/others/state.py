@@ -251,9 +251,18 @@ class GuildState:
             return {}
         
         levels = [int(level) for level in self.rank_levels]
-        roles = [self.get_role(id=role) for role in self.rank_roles]
+        roles = [self.guild.get_role(role) for role in self.rank_roles]
         
         return dict(zip(levels, roles))
+        
+    @ranks.setter
+    def ranks(self, new):
+        if len(new) == 0:
+            raise AttributeError("Cant set ranks to empty")
+           
+        levels, roles = list(new.keys()), [role.id for role in list(new.values())]
+        self.rank_roles = roles
+        self.rank_levels = levels
     
     @property
     def exp_counting(self) -> bool:
@@ -347,6 +356,14 @@ class MemberState:
         info["rel_bar"] = rel_bar
 
         return info
+        
+    @property
+    def rel_xp(self) -> int:
+        return int(self.info["rel_xp"])
+        
+    @property
+    def rel_bar(self) -> int:
+        return int(self.info["rel_bar"])
     
     @property 
     def database(self) -> dict:

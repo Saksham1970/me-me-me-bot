@@ -256,10 +256,10 @@ async def auto_backup():
 # * ON READY
 @client.event
 async def on_ready():
-    auto_backup.start() 
+    #auto_backup.start() 
     cog_load_startup()
-    offline_backup.start()
-    gen.reset()
+    #offline_backup.start()
+    #gen.reset()
     
     with open(os.path.join(DB_PATH, "temp.pkl"), "wb") as f:
         f.write(b"")
@@ -301,8 +301,9 @@ async def on_guild_join(guild: discord.Guild):
 async def on_command_error(ctx, error: discord.DiscordException):
     
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send(">>> That isn't even a command, you have again proven to be a ME!stake.", delete_after=5)
-
+        #await ctx.send(">>> That isn't even a command, you have again proven to be a ME!stake.", delete_after=5)
+        pass
+        
     elif isinstance(error, commands.CommandOnCooldown):
             embed = discord.Embed(title="Woah woah, gonnae wait??",
                                   color = discord.Color.red(),
