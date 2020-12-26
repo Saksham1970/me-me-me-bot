@@ -275,7 +275,6 @@ class MemberState:
     
     xp = JSONProperty(**class_properties, name="exp", default=0)
     messages = JSONProperty(**class_properties, name="messages", default=0)
-    rank = JSONProperty(**class_properties, name="rank", default=0)
     active = JSONProperty(**class_properties, name="active", default=False)
     
     def __init__(self, member: discord.Member):
@@ -356,6 +355,23 @@ class MemberState:
         info["rel_bar"] = rel_bar
 
         return info
+    
+    @property
+    def rank(self) -> int:
+        all_xp = {}
+        for member in self.member.guild.members:
+            if member.bot:
+                continue
+            
+            state = MemberState(member)
+            
+            all_xp[member.id] = state.xp
+            
+        all_xp = {k: v for k, v in sorted(all_xp.items(), key=lambda item: item[1], reverse=True)}
+        
+        for rank, member in enumerate(list(all_xp.keys())):
+            if member  == self.member.id:
+                return rank + 1
         
     @property
     def rel_xp(self) -> int:
