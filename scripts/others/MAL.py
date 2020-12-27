@@ -140,6 +140,10 @@ class Anime(abc):
         self._config = config
         self.reload()
         
+    @property
+    def id(self):
+        return self._id
+        
     @classmethod
     def from_name(cls, query: str, config: MALConfig):
         request = config.get("https://api.myanimelist.net/v2/anime", params={"q": query, "limit" : 1})
@@ -149,7 +153,7 @@ class Anime(abc):
     @classmethod
     def search(cls, query: str, config: MALConfig, limit: int = 5, basic=True):
         request = config.get("https://api.myanimelist.net/v2/anime", params={"q": query, "limit" : limit})
-    
+        
         for anime in request.json()["data"]:
             data = anime["node"]
             anime_id = data["id"]
@@ -212,6 +216,10 @@ class Manga(abc):
         self._config = config
         self.reload()
         
+    @property
+    def id(self):
+        return self._id
+    
     @classmethod
     def from_name(cls, query: str, config: MALConfig):
         request = config.get("https://api.myanimelist.net/v2/manga", params={"q": query, "limit" : 1})

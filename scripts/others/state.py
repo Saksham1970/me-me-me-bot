@@ -368,6 +368,7 @@ class MemberState:
             all_xp[member.id] = state.xp
             
         all_xp = {k: v for k, v in sorted(all_xp.items(), key=lambda item: item[1], reverse=True)}
+        print(all_xp)
         
         for rank, member in enumerate(list(all_xp.keys())):
             if member  == self.member.id:
@@ -399,6 +400,7 @@ class UserState:
     class_properties = {"db_scope":"user", "is_unique":True}
     
     vault = JSONProperty(**class_properties, name="vault", default={})
+    anime_watch_list = JSONProperty(**class_properties, name="vault", default=[])
     souls = JSONProperty(**class_properties, name="souls", default=0)
     playlist = JSONProperty(**class_properties, name="playlist", default={})
     card_blend = JSONProperty(**class_properties, name="card_blend", default=False)

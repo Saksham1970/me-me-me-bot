@@ -9,6 +9,7 @@ import asyncio
 from random import choice
 from discord.ext import commands
 from MAL import Anime, Manga, MALConfig
+from state import State
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -37,7 +38,34 @@ class Weeb(commands.Cog):
                 
         return result
     
-    async def weeb_embed(self, ctx, search_message, weeb_abc, type):
+    def vault_add(self, user: discord.User, item):
+        st = State(member=user).User
+    
+        vault = st.anime_watch_list
+        
+        if item in vault:
+            return False
+        
+        vault.append(item)
+                
+        st.anime_watch_list = vault
+        
+        return True
+    
+    def vault_remove(self, user: discord.User, index: int):
+        st = State(member=user).User
+        vault = st.anime_watch_list
+        index = int(index)
+        if len(vault) < int(index - 1):
+            return None
+
+        removed = vault.pop(index-1)
+        
+        st.anime_watch_list = vault
+        
+        return removed
+    
+    async def weeb_embed(self, ctx, weeb_abc, type, search_message=None ):
         embed_1 = discord.Embed(title=f"{weeb_abc.english_title} `{weeb_abc.japenese_title}`", url=weeb_abc.url, color=discord.Colour.red())
         embed_1.set_author(name="Me!Me!Me!", icon_url=self.client.user.avatar_url)
         embed_1.set_thumbnail(url=Weeb.MAL_LOGO)
@@ -78,13 +106,16 @@ class Weeb(commands.Cog):
         embed_pages = [embed_1, embed_2]
         current_page = 0
         
-        await search_message.edit(content="", embed=embed_1)
+        if search_message is not None:
+            await search_message.edit(content="", embed=embed_1)
+        else:
+            search_message = await ctx.send(embed=embed_1)
         
         async def reactions_add(message, reactions):
             for reaction in reactions:
                 await message.add_reaction(reaction)
                 
-        reactions = {"⬅" : "back", "➡" : "forward"}
+        reactions = {"⬅" : "back", "➡" : "forward", "⭐": "fav"}
 
         def reaction_check(reaction, user):
             return (not user.bot) and reaction.message.id == search_message.id and str(reaction) in reactions.keys()
@@ -107,6 +138,8 @@ class Weeb(commands.Cog):
                         current_page += 1
                     else:
                         current_page = 0
+                        
+                    await search_message.edit(embed=embed_pages[current_page])
                 
                 elif reaction_response == "back":
                     if not current_page == 0:
@@ -114,7 +147,98 @@ class Weeb(commands.Cog):
                     else:
                         current_page = len(embed_pages) - 1
                         
-                await search_message.edit(embed=embed_pages[current_page])
+                    await search_message.edit(embed=embed_pages[current_page])
+                        
+                elif reaction_response == "fav":
+                    if type == "manga":
+                        await ctx.send("Watch list is not yet supported for manga, support for mangalist coming soon(not really).")
+                        continue
+                    
+                    successfull = self.vault_add(user, int(weeb_abc.id))
+                    if successfull:
+                        await ctx.send(f"Added `{str(weeb_abc)}` to the watchlist of **{str(user)}**")
+                    else:
+                        await ctx.send(f"`{str(weeb_abc)}` is already in the watch list of **{str(user)}**")
+                    continue
+                
+    async def embed_pages(self, _content, ctx: commands.Context, embed_msg: discord.Message, check=None, wait_time=90):
+
+        if type(_content) == str:
+            if len(_content) < 2048:
+                return
+
+        async def reactions_add(message, reactions):
+            for reaction in reactions:
+                await message.add_reaction(reaction)
+
+        def default_check(reaction: discord.Reaction, user):
+            return user == ctx.author and reaction.message.id == embed_msg.id
+
+        if check is None:
+            check = lambda reaction, user: user == ctx.author and reaction.message.id == embed_msg.id
+
+    
+        if type(_content) == str:
+            content_list = _content.split("\n")
+            content = []
+            l = ""
+            for i in content_list:
+                if len(l+i) > 2048:
+                    content += [l]
+                    l = ""
+                l += i
+                l += "\n"    
+            else:
+                content += [l]
+
+        elif type(_content) == list:
+            content = _content
+
+        pages = len(content)
+        page = 1
+
+        embed: discord.Embed = embed_msg.embeds[0]
+
+        def embed_update(page):
+            embed.description = content[page - 1]
+            return embed
+
+        await embed_msg.edit(embed=embed_update(page=page))
+
+        reactions = {"back": "⬅", "delete": "❌", "forward": "➡"}
+
+        self.client.loop.create_task(reactions_add(
+            reactions=reactions.values(), message=embed_msg))
+
+        while True:
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time, check=check)
+            except TimeoutError:
+                await embed_msg.clear_reactions()
+
+                return
+
+            else:
+                response = str(reaction.emoji)
+
+                await embed_msg.remove_reaction(response, ctx.author)
+
+                if response in reactions.values():
+                    if response == reactions["forward"]:
+                        page += 1
+                        if page > pages:
+                            page = pages
+                    elif response == reactions["back"]:
+                        page -= 1
+                        if page < 1:
+                            page = 1
+                    elif response == reactions["delete"]:
+                        await embed_msg.delete(delay=3)
+
+                        return
+
+                    await embed_msg.edit(embed=embed_update(page=page))
+                        
         
     @commands.command()
     @commands.cooldown(rate=3, per=4, type=BucketType.member)
@@ -252,7 +376,72 @@ class Weeb(commands.Cog):
         found_anime = Manga(the_chosen_id, Weeb.config)
         await self.weeb_embed(ctx=ctx, search_message=search_message, weeb_abc=found_anime, type="manga")
         
+    @commands.group(name="watch-list", aliases=["wl"])
+    async def watch_list(self, ctx: commands.Context):
+        """The holy VAULT is where you store all your culture, use subcommands to release it to ur dm and do other stuff."""
+         
+        if ctx.invoked_subcommand is None:
+            user_vault = ctx.States.User.anime_watch_list
+            
+            if user_vault == {}:
+                await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
+                return
+            
+            content = [Anime(item, Weeb.config) for item in user_vault]
+            
+            embed: discord.Embed = discord.Embed(title=f"{ctx.author.name}'s watch list",
+                                                color=discord.Color.from_rgb(255, 9, 119))
+            embed.set_thumbnail(url=content[0].cover) 
+            embed.set_author(name="Me!Me!Me!",
+                            icon_url=self.client.user.avatar_url)
+            
+            content_str = ""
+            for index, item in enumerate(content):
+                content_str += f"**{index + 1}.** [{str(item)} `{item.japenese_title}`]({item.url})\n\n"
+                
+            embed.description = content_str
+                
+            msg = await ctx.send(embed=embed)
+            
+            await self.embed_pages(content_str, ctx=ctx, embed_msg=msg)
+                    
+    @watch_list.command()
+    async def release(self, ctx: commands.Context):
+        """Send your entire watch list to ur DM"""
+            
+        user_vault = ctx.States.User.vault      
+        content = [Anime(item, Weeb.config) for item in user_vault]
         
+        if user_vault == {}:
+            await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
+            return
+        
+        await ctx.send(">>> Your whole vault is being sent to your DM.")
+        await ctx.author.send(">>> Here's your vault, enjoy!")
+        
+        for item in content:
+            await ctx.author.send(embed=self.weeb_embed(weeb_abc=item, author=ctx.author, typre="anime"))
+            
+        await ctx.author.send("That's all folks.")
+    
+    @watch_list.command(aliases=["remove"])
+    async def pop(self, ctx: commands.Context, index):
+        """Remove item from watch list"""
+        
+        try:
+            i = int(index)
+        except:
+            await ctx.send(">>> Indexes are supposed to be numbers.")
+            return
+        
+        removed_id = self.vault_remove(ctx.author, index=index)
+        removed_name = Anime(removed_id, Weeb.config).english_title
+        
+        if removed_id is None:
+            await ctx.send(">>> The index you entered is bigger than the size of your watch list.")
+            return
+        
+        await ctx.send(f"Removed `{removed_name}` from the watch list of {str(ctx.author)}`s")        
 
 def setup(client):
     client.add_cog(Weeb(client))
