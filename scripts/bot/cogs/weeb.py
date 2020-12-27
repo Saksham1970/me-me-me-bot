@@ -405,24 +405,24 @@ class Weeb(commands.Cog):
             
             await self.embed_pages(content_str, ctx=ctx, embed_msg=msg)
                     
-    @watch_list.command()
-    async def release(self, ctx: commands.Context):
-        """Send your entire watch list to ur DM"""
+    # @watch_list.command()
+    # async def release(self, ctx: commands.Context):
+    #     """Send your entire watch list to ur DM"""
             
-        user_vault = ctx.States.User.vault      
-        content = [Anime(item, Weeb.config) for item in user_vault]
+    #     user_vault = ctx.States.User.vault      
+    #     content = [Anime(item, Weeb.config) for item in user_vault]
         
-        if len(user_vault) == 0:
-            await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
-            return
+    #     if len(user_vault) == 0:
+    #         await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
+    #         return
         
-        await ctx.send(">>> Your whole vault is being sent to your DM.")
-        await ctx.author.send(">>> Here's your vault, enjoy!")
+    #     await ctx.send(">>> Your whole vault is being sent to your DM.")
+    #     await ctx.author.send(">>> Here's your vault, enjoy!")
         
-        for item in content:
-            await ctx.author.send(embed=self.weeb_embed(weeb_abc=item, author=ctx.author, typre="anime"))
+    #     for item in content:
+    #         await ctx.author.send(embed=self.weeb_embed(ctx=ctx, weeb_abc=item, type="anime"))
             
-        await ctx.author.send("That's all folks.")
+    #     await ctx.author.send("That's all folks.")
     
     @watch_list.command(aliases=["remove"])
     async def pop(self, ctx: commands.Context, index):
@@ -441,7 +441,7 @@ class Weeb(commands.Cog):
             await ctx.send(">>> The index you entered is bigger than the size of your watch list.")
             return
         
-        await ctx.send(f"Removed `{removed_name}` from the watch list of {str(ctx.author)}`s")        
+        await ctx.send(f"Removed `{removed_name}` from the watch list of **{str(ctx.author)}**")        
 
 def setup(client):
     client.add_cog(Weeb(client))
