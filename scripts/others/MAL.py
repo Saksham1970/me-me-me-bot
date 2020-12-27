@@ -196,12 +196,15 @@ class Anime(abc):
     
     @property
     def source(self) -> str:
-        return self._data["source"]
+        return self._data["source"] if "source" in self._data else "NA"
     
     @property
     def season(self) -> str:
-        info = self._data["start_season"]
+        info = self._data["start_season"] if "start_season" in self._data else "NA"
         
+        if info == "NA":
+            return info       
+         
         return f"{info['season'].capitalize()} {str(info['year'])}"
     
     @property
