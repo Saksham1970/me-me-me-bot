@@ -383,7 +383,7 @@ class Weeb(commands.Cog):
         if ctx.invoked_subcommand is None:
             user_vault = ctx.States.User.anime_watch_list
             
-            if user_vault == {}:
+            if len(user_vault) == 0:
                 await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
                 return
             
@@ -412,7 +412,7 @@ class Weeb(commands.Cog):
         user_vault = ctx.States.User.vault      
         content = [Anime(item, Weeb.config) for item in user_vault]
         
-        if user_vault == {}:
+        if len(user_vault) == 0:
             await ctx.send("Looks like your watch list is empty! Add anime to your watch list by pressing ⭐ on the anime embed")
             return
         
