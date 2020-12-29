@@ -1,6 +1,13 @@
 from typing import List
 import requests
 
+class property(property):    
+    def __get__(self, *args, **kwargs):
+        try:
+            return super().__get__(*args, **kwargs)
+        except KeyError:
+            return "NA"
+        
 class MALConfig:
     def __init__(self, client_id, client_secret, access_token, refresh_token) -> None:
         self.CLIENT_ID = client_id
@@ -52,7 +59,7 @@ class abc:
         
     @property
     def english_title(self) -> str:
-        return self._data["title"] if "title" in self._data else "NA"
+        return self._data["title"]
      
     @property
     def japenese_title(self) -> str:
@@ -63,7 +70,7 @@ class abc:
     
     @property
     def background(self) -> str:
-        return self._data["background"] if "background" in self._data else "NA"
+        return self._data["background"]
     
     @property
     def broadcast(self) -> str:
@@ -111,7 +118,7 @@ class abc:
     
     @property
     def score(self) -> float:
-        return float(self._data["mean"]) if "mean" in self._data else 0
+        return float(self._data["mean"])
     
     @property
     def popularity(self) -> int:
@@ -119,7 +126,7 @@ class abc:
                    
     @property
     def rank(self) -> int:
-        return int(self._data["rank"]) if "rank" in self._data else 0
+        return int(self._data["rank"])
     
     @property
     def status(self) -> str:
@@ -196,11 +203,11 @@ class Anime(abc):
     
     @property
     def source(self) -> str:
-        return self._data["source"] if "source" in self._data else "NA"
+        return self._data["source"]
     
     @property
     def season(self) -> str:
-        info = self._data["start_season"] if "start_season" in self._data else "NA"
+        info = self._data["start_season"]
         
         if info == "NA":
             return info       
@@ -209,7 +216,7 @@ class Anime(abc):
     
     @property
     def age_rating(self) -> str:
-        return self._data["rating"] if "rating" in self._data else "NA"
+        return self._data["rating"]
         
     
 class Manga(abc):

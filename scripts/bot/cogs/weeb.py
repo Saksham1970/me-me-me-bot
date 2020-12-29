@@ -6,10 +6,13 @@ sys.path.append(os.path.abspath("./scripts/others/"))
 
 import discord
 import asyncio
+from typing import Dict, List, Union
 from random import choice
 from discord.ext import commands
+
 from MAL import Anime, Manga, MALConfig
 from state import State
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -65,7 +68,7 @@ class Weeb(commands.Cog):
         
         return removed
     
-    async def weeb_embed(self, ctx, weeb_abc, type, search_message=None ):
+    def weeb_embed(self, weeb_abc, type) -> List[discord.Embed]:
         embed_1 = discord.Embed(title=f"{weeb_abc.english_title} `{weeb_abc.japenese_title}`", url=weeb_abc.url, color=discord.Colour.red())
         embed_1.set_author(name="Me!Me!Me!", icon_url=self.client.user.avatar_url)
         embed_1.set_thumbnail(url=Weeb.MAL_LOGO)
@@ -102,25 +105,37 @@ class Weeb(commands.Cog):
         embed_2.add_field(name="End", value = f"`{weeb_abc.end_date}`")  
         embed_2.add_field(name="Status", value = f"`{weeb_abc.status.capitalize()}`")
         embed_2.add_field(name="Genres", value=self.format_list(weeb_abc.genres))
-        
-        embed_pages = [embed_1, embed_2]
+    
+        return [embed_1, embed_2]
+    
+    async def weeb_react(self, ctx, weeb_abc, embed_pages, search_results: List[Dict[str, Union[str, int]]], search_message = None):
         current_page = 0
         
         if search_message is not None:
-            await search_message.edit(content="", embed=embed_1)
+            await search_message.edit(content="", embed=embed_pages[0])
         else:
-            search_message = await ctx.send(embed=embed_1)
+            search_message = await ctx.send(embed=embed_pages[1])
         
         async def reactions_add(message, reactions):
             for reaction in reactions:
                 await message.add_reaction(reaction)
                 
-        reactions = {"⬅" : "back", "➡" : "forward", "⭐": "fav"}
+        reactions = {"⏪": "prev_anime", "⬅" : "back", "⭐": "fav", "➡" : "forward", "⏩": "next_anime"}
 
         def reaction_check(reaction, user):
             return (not user.bot) and reaction.message.id == search_message.id and str(reaction) in reactions.keys()
 
         self.client.loop.create_task(reactions_add(search_message, reactions.keys()))
+        
+        seen_anime = {weeb_abc.id: embed_pages}
+        current_anime_page =  0
+        
+        selected = 0
+        for i in search_results:
+            if int(list(i.values())[2]) == int(weeb_abc.id):
+                selected = i
+        search_results.remove(selected)
+        search_results.insert(0, selected)
         
         while True:
 
@@ -160,6 +175,30 @@ class Weeb(commands.Cog):
                     else:
                         await ctx.send(f"`{str(weeb_abc)}` is already in the watch list of **{str(user)}**")
                     continue
+                
+                else:
+                    if reaction_response == "next_anime":
+                        if current_anime_page == len(search_results) - 1:
+                            current_anime_page = 0
+                        else:    
+                            current_anime_page += 1
+                    
+                    elif reaction_response == "prev_anime":
+                        if current_anime_page == 0:
+                            current_anime_page = len(search_results) - 1
+                        else:    
+                            current_anime_page -= 1
+                    
+                    _id = int(list(search_results[current_anime_page].values())[2])
+                    
+                    if _id in seen_anime:
+                        embed_pages = seen_anime[_id]
+                    else:
+                        obj = type(weeb_abc)(_id, Weeb.config)
+                        embed_pages = self.weeb_embed(obj, type(obj).__name__.lower())
+                        seen_anime[_id] = embed_pages
+                    
+                    await search_message.edit(embed=embed_pages[0])
                 
     async def embed_pages(self, _content, ctx: commands.Context, embed_msg: discord.Message, check=None, wait_time=90):
 
@@ -306,7 +345,8 @@ class Weeb(commands.Cog):
                     break
                 
         found_anime = Anime(the_chosen_id, Weeb.config)
-        await self.weeb_embed(ctx=ctx, search_message=search_message, weeb_abc=found_anime, type="anime")
+        embeds = self.weeb_embed(weeb_abc=found_anime, type="anime")
+        await self.weeb_react(ctx, found_anime, embeds, search_message=search_message, search_results=result)
         
     @commands.command()
     @commands.cooldown(rate=3, per=4, type=BucketType.member)
@@ -373,8 +413,9 @@ class Weeb(commands.Cog):
                     
                     break
                 
-        found_anime = Manga(the_chosen_id, Weeb.config)
-        await self.weeb_embed(ctx=ctx, search_message=search_message, weeb_abc=found_anime, type="manga")
+        found_manga = Manga(the_chosen_id, Weeb.config)
+        embeds = self.weeb_embed(weeb_abc=found_manga, type="manga")
+        await self.weeb_react(ctx, found_manga, embeds, search_message=search_message, search_results=result)
         
     @commands.group(name="watch-list", aliases=["wl"])
     async def watch_list(self, ctx: commands.Context):
