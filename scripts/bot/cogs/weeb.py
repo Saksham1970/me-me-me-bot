@@ -169,11 +169,16 @@ class Weeb(commands.Cog):
                         await ctx.send("Watch list is not yet supported for manga, support for mangalist coming soon(not really).")
                         continue
                     
-                    successfull = self.vault_add(user, int(weeb_abc.id))
+                    current_anime = list(search_results[current_anime_page].values())
+                    current_anime_id = int(current_anime[2])
+                    current_anime_name = current_anime[0]
+                    
+                    successfull = self.vault_add(user, current_anime_id)
+                    
                     if successfull:
-                        await ctx.send(f"Added `{str(weeb_abc)}` to the watchlist of **{str(user)}**")
+                        await ctx.send(f"Added `{current_anime_name}` to the watchlist of **{str(user)}**")
                     else:
-                        await ctx.send(f"`{str(weeb_abc)}` is already in the watch list of **{str(user)}**")
+                        await ctx.send(f"`{current_anime_name}` is already in the watch list of **{str(user)}**")
                     continue
                 
                 else:
@@ -198,7 +203,8 @@ class Weeb(commands.Cog):
                         embed_pages = self.weeb_embed(obj, type(obj).__name__.lower())
                         seen_anime[_id] = embed_pages
                     
-                    await search_message.edit(embed=embed_pages[0])
+                    current_page  = 0
+                    await search_message.edit(embed=embed_pages[current_page])
                 
     async def embed_pages(self, _content, ctx: commands.Context, embed_msg: discord.Message, check=None, wait_time=90):
 
