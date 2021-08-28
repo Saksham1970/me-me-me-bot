@@ -16,7 +16,7 @@ lxml
 lyricsgenius
 multidict==4.7.6
 Pillow
-praw
+asyncpraw
 prawcore
 pycparser
 PyNaCl
