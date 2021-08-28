@@ -100,7 +100,7 @@ class JSONProperty:
         
     @property
     def db_path(self):
-        return f"{DBPATH}\\{self.db_name}.json"
+        return f"{DBPATH}/{self.db_name}.json"
     
     def __get__(self, instance, owner):
         self.unique_num = instance.unique_num if not self.is_unique else None

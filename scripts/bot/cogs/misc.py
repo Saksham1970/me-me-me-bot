@@ -239,7 +239,7 @@ class Misc(commands.Cog):
             async with cs.get(vid.audio_url) as r:
 
                 data = await r.read()
-                filename = f"{self.DPATH}\\{vid.id}.{vid.ext}"
+                filename = f"{self.DPATH}/{vid.id}.{vid.ext}"
                 
                 with open(filename, 'wb+') as temp:
                     temp.write(b"")

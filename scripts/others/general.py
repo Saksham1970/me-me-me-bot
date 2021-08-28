@@ -62,9 +62,9 @@ except asyncpraw.exceptions.ClientException:
 def commit(sp_msg: str()):
    
     try:
-        os.rename(f"{DBPATH}\\gothy", f"{DBPATH}\\.git")
+        os.rename(f"{DBPATH}/gothy", f"{DBPATH}/.git")
     except Exception as e:
-        if not os.path.exists(f"{DBPATH}\\.git"):
+        if not os.path.exists(f"{DBPATH}/.git"):
             print(e)
             return
 
@@ -82,15 +82,15 @@ def commit(sp_msg: str()):
     else:
         done = True
             
-    os.rename(f"{DBPATH}\\.git", f"{DBPATH}\\gothy")
+    os.rename(f"{DBPATH}/.git", f"{DBPATH}/gothy")
     return done
 
 
 def reset():
     try:
-        os.rename(f"{DBPATH}\\gothy", f"{DBPATH}\\.git")
+        os.rename(f"{DBPATH}/gothy", f"{DBPATH}/.git")
     except Exception as e:
-        if not os.path.exists(f"{DBPATH}\\.git"):
+        if not os.path.exists(f"{DBPATH}/.git"):
             print(e)
             return
 
@@ -103,13 +103,13 @@ def reset():
     except:
         pass
  
-    repo = Repo(f"{DBPATH}\\.git")
+    repo = Repo(f"{DBPATH}/.git")
     origin = repo.remote(name="origin")
     origin.pull()
 
  
     print("Pulled Database Successfully")
-    os.rename(f"{DBPATH}\\.git", f"{DBPATH}\\gothy")
+    os.rename(f"{DBPATH}/.git", f"{DBPATH}/gothy")
  
 
 def permu(strs):
@@ -141,12 +141,12 @@ def error_message(error, color="white"):
 
 
 def db_receive(name) -> dict:
-    with open(f'{DBPATH}\\{name}.json', 'r') as f:
+    with open(f'{DBPATH}/{name}.json', 'r') as f:
         return json.load(f)
 
 
 def db_update(name, db):
-    with open(f'{DBPATH}\\{name}.json', 'w') as f:
+    with open(f'{DBPATH}/{name}.json', 'w') as f:
         json.dump(db, f, indent=4)
 
 
@@ -167,7 +167,7 @@ def cooldown(rate=None, per=None, type=BucketType.default):
         if isinstance(func, Command):
             nonlocal rate,per,type
             db_name = (f"Cooldowns")
-            make_db_if_not_exists(path=f"{DBPATH}\\{db_name}.json")
+            make_db_if_not_exists(path=f"{DBPATH}/{db_name}.json")
             cooldowns = db_receive(db_name)
             if not rate:
                 rate = 1
