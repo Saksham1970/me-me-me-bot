@@ -20,7 +20,7 @@ chrome_options.add_argument("disable-gpu")
 chrome_options.add_argument("headless")
 chrome_options.add_argument("log-level=3")
 
-driver = webdriver.Chrome(chrome_options = chrome_options, executable_path=os.path.abspath("./Bin/chromedriver.exe")) 
+driver = webdriver.Chrome(chrome_options = chrome_options, executable_path=os.path.abspath("./bin/chromedriver.exe")) 
 
 driver.get("http://www.youtube.com")
 

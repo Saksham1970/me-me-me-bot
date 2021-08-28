@@ -7,10 +7,13 @@ import os
 import concurrent.futures
 from state import BotState
 
-_CLIENT_ID = "d25b6deb1dedc8e"
-_CLIENT_SECRET = "7a357962df433442627eb65cdada3daed03465dc"
+from dotenv import load_dotenv
+load_dotenv()
+
+# _CLIENT_ID = "d25b6deb1dedc8e"
+# _CLIENT_SECRET = "7a357962df433442627eb65cdada3daed03465dc"
     
-_client = ImgurClient(_CLIENT_ID, _CLIENT_SECRET)
+_client = ImgurClient(os.environ.get("IMGUR_CLIENT_ID"), os.environ.get("IMGUR_CLIENT_SECRET"))
 
 def get_image_url(response, path) -> str:
     with open(path, "wb+") as f:

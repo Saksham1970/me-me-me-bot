@@ -1,4 +1,4 @@
-import praw
+import asyncpraw
 import os
 from colorama import init, Fore, Back
 from discord.ext.commands import Command, Cooldown,CooldownMapping, BucketType
@@ -48,14 +48,14 @@ level_Hero = 50
 level_CON = 85
 
 try:
-    reddit = praw.Reddit(
+    reddit = asyncpraw.Reddit(
         client_id=os.environ.get("REDDIT_CLIENT_ID"),
         client_secret=os.environ.get("REDDIT_CLIENT_SECRET"),
         username=os.environ.get("REDDIT_USERNAME"),
         password=os.environ.get("REDDIT_PASSWORD"),
         user_agent="FuqU"
     )
-except praw.exceptions.ClientException:
+except asyncpraw.exceptions.ClientException:
     pass
 
 

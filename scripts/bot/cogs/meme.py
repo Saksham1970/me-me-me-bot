@@ -37,7 +37,7 @@ class Meme(commands.Cog):
         '''Get some fresh memes, probably reposts (i mean its reddit we are talking about) but whatever.'''
         
         reddit = gen.reddit
-        subr = reddit.subreddit(subreddit)
+        subr = await reddit.subreddit(subreddit, fetch=True)
         
         if subr.over18 and not ctx.channel.is_nsfw():
             await ctx.send(f"The `{subreddit}` is marked NSFW, so call the command in a NSFW channel instead.")
@@ -50,7 +50,7 @@ class Meme(commands.Cog):
             i=1
             while len(memes) < amount:
                 x=[]
-                for j in subr.hot(limit=i):
+                async for j in subr.hot(limit=i):
                     x+=[j]
                 x=x[-1]
                 if not x.stickied:
@@ -63,7 +63,7 @@ class Meme(commands.Cog):
             i=1
             while len(memes) < amount:
                 x=[]
-                for j in subr.top(limit=i):
+                async for j in subr.top(limit=i):
                     x+=[j]
                 x=x[-1]
                 if not x.stickied:
@@ -77,7 +77,7 @@ class Meme(commands.Cog):
             i=1
             while len(memes) < amount:
                 x=[]
-                for j in subr.new(limit=i):
+                async for j in subr.new(limit=i):
                     x+=[j]
                 x=x[-1]
                 if not x.stickied:
@@ -91,7 +91,7 @@ class Meme(commands.Cog):
             i=1
             while len(memes) < amount:
                 x=[]
-                for j in subr.controversial(limit=i):
+                async for j in subr.controversial(limit=i):
                     x+=[j]
                 x=x[-1]
                 if not x.stickied:
@@ -105,7 +105,7 @@ class Meme(commands.Cog):
             i=1
             while len(memes) < amount:
                 x=[]
-                for j in subr.rising(limit=i):
+                async for j in subr.rising(limit=i):
                     x+=[j]
                 x=x[-1]
                 if not x.stickied:
@@ -123,6 +123,8 @@ class Meme(commands.Cog):
                     title = submissions.title, url = submissions.shortlink,
                     colour = discord.Colour.orange()
                 )
+            
+            await submissions.author.load()
             meh.set_image(url=submissions.url)
             meh.set_author(name = f"u/{submissions.author}" , icon_url=submissions.author.icon_img)
             meh.add_field(name = '~~Spanks~~ Updoots', value = f"{round(submissions.ups/1000,1)}k" , inline = True)
@@ -143,8 +145,7 @@ class Meme(commands.Cog):
         for sr in gen.subreddits:
             #! GETS MEMES AND CHECK IF SHOWN
             
-            subreddit = reddit.subreddit(sr)
-            hot_memes = subreddit.hot(limit=limit)
+            subreddit = await reddit.subreddit(sr)
             meme_info = gen.db_receive("meme")
             
             if sr in meme_info:
@@ -153,7 +154,7 @@ class Meme(commands.Cog):
                 meme_info[sr]={"total":[] , "unshowed":[] }
                 sub_info = meme_info[sr]   
     
-            for submission in hot_memes:
+            async for submission in subreddit.hot(limit=limit):
                 if not submission.stickied:
                     
                     if str(submission) not in sub_info["total"]:
@@ -169,13 +170,14 @@ class Meme(commands.Cog):
         for sub_name in meme_info:
             sub_info = meme_info[sub_name]
             for submissions in sub_info["unshowed"]:
-                subr = reddit.subreddit(sub_name)
-                submissions = reddit.submission(submissions)
+                subr = await reddit.subreddit(sub_name)
+                submissions = await reddit.submission(submissions)
                 meh = discord.Embed(
                     title = submissions.title, url = submissions.shortlink,
                     colour = discord.Colour.orange()
                 )
                 meh.set_image(url=submissions.url)
+                await submissions.author.load()
                 meh.set_author(name = f"u/{submissions.author}" , icon_url=submissions.author.icon_img)
                 meh.add_field(name = '~~Spanks~~ Updoots', value = f"{round(submissions.ups/1000,1)}k" , inline = True)
                 meh.add_field(name = 'Subreddit', value = f"r/{sub_name}" , inline = True)
