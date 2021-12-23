@@ -43,9 +43,13 @@ class Queue(commands.Cog):
             yield lst[i:i + n]
 
     async def embed_pages(self, _content, ctx: commands.Context, embed_msg: discord.Message, check=None, wait_time=90):
+        
+        embed: discord.Embed = embed_msg.embeds[0]
 
         if type(_content) == str:
             if len(_content) < 2048:
+                embed.description = _content
+                await embed_msg.edit(embed=embed)
                 return
 
         async def reactions_add(message, reactions):
@@ -58,7 +62,7 @@ class Queue(commands.Cog):
         if check is None:
             check = lambda reaction, user: user == ctx.author and reaction.message.id == embed_msg.id
 
-    
+       
         if type(_content) == str:
             content_list = _content.split("\n")
             content = []
@@ -78,7 +82,7 @@ class Queue(commands.Cog):
         pages = len(content)
         page = 1
 
-        embed: discord.Embed = embed_msg.embeds[0]
+        
 
         def embed_update(page):
             embed.description = content[page - 1]
@@ -87,16 +91,16 @@ class Queue(commands.Cog):
         await embed_msg.edit(embed=embed_update(page=page))
 
         reactions = {"back": "⬅", "delete": "❌", "forward": "➡"}
-
+        
         self.client.loop.create_task(reactions_add(
             reactions=reactions.values(), message=embed_msg))
 
         while True:
             try:
+               
                 reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time, check=check)
             except TimeoutError:
                 await embed_msg.clear_reactions()
-
                 return
 
             else:

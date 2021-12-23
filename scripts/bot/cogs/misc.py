@@ -61,6 +61,7 @@ class Misc(commands.Cog):
 
         queue = [x for x in state.queue if type(x) != str]
         vid = queue[0]
+        print(vid.title)
         song = genius.search_song(vid.title)
         if not song:
             await ctx.send("Can't Find lyrics. Try using choose-lyrics command.")
@@ -80,7 +81,7 @@ class Misc(commands.Cog):
         await self.client.get_cog("Queue").embed_pages(ctx=ctx, _content=lyrics, embed_msg=embed_msg, wait_time=120)
         
     @commands.command(name="choose-lyrics",aliases = ['clyrics'])
-    async def clyrics(self, ctx: commands.Context,query = None):
+    async def clyrics(self, ctx: commands.Context,*,query = None):
         """Get the lyrics not ANY(susceptible to terms and conditions) song."""
         state = TempState(ctx.author.guild)
         if not query and state.queue == []:
@@ -89,19 +90,26 @@ class Misc(commands.Cog):
             query = state.queue[0].title
         
         title = query
-        response = genius.search_genius_web(title)
 
-        hits = response['sections'][0]['hits']
-        sections = sorted(response['sections'],
-                                key=lambda sect: sect['type'] == "song",
-                                reverse=True)
-                
-                
-        hits =[hit for section in sections for hit in section['hits'] if hit['type'] == "song"][0:5]
+        type_ = "song"
+        response = genius.search_all(title)
+        top_hits = response["sections"][0]["hits"]
+        sections = sorted(response["sections"], key=lambda sect: sect["type"] == type_)
+
+        hits = [hit for hit in top_hits if hit["type"] == type_]
+        hits.extend(
+            [hit for section in sections for hit in section["hits"] if hit["type"] == type_]
+        )
+
+
         if hits ==[]:
             await ctx.send("Can't Find lyrics. Use different name of the song.")
             return
+
        
+        hits = [i for n, i in enumerate(hits) if i not in hits[:n]][:5]
+
+        
         async def reactions_add(message, reactions):
             for reaction in reactions:
                 await message.add_reaction(reaction)
@@ -133,8 +141,8 @@ class Misc(commands.Cog):
         
         while True:
             try:
-                reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time,
-                                                             check=lambda reaction, user: user == ctx.author and reaction.message.id == embed_msg.id)
+                reaction, user = await self.client.wait_for('reaction_add', timeout=wait_time, check=lambda reaction, user: user == ctx.author and reaction.message.id == embed_msg.id)
+            
             except TimeoutError:
                 await ctx.send(f">>> I guess no ones wants to see some sweet lyrics.")
                 await embed_msg.delete()
@@ -149,8 +157,7 @@ class Misc(commands.Cog):
                     hit = hits[reactions[str(reaction.emoji)] - 1]  
                                       
                     song_info =hit["result"]
-                    lyrics = genius._scrape_song_lyrics_from_url(song_info['url'])
-                    
+                    lyrics = genius.lyrics(song_url=song_info["url"])
                     song = Song(song_info,lyrics)
                     embed = discord.Embed(title=f"LYRICS - {song.title} - {song.artist}",  # TODO make a function
                               url=song.url,
@@ -184,8 +191,8 @@ class Misc(commands.Cog):
 
         embed.add_field(name="Date of Upload", value=result.date)
         embed.add_field(name="Views", value=result.views)
-        embed.add_field(name="Likes/Dislikes",
-                        value=f"{result.likes}/{result.dislikes}")
+        embed.add_field(name="Likes",
+                        value=f"{result.likes}")
         await ctx.send(embed=embed)
 
     # ? PLAYLIST_INFO
@@ -353,7 +360,6 @@ class Misc(commands.Cog):
                 "webpage_url",
                 "view_count",
                 "like_count",
-                "dislike_count",
                 "thumbnails",
                 "format_id",
                 "url",
@@ -384,8 +390,8 @@ class Misc(commands.Cog):
 
             embed.add_field(name="Date of Upload", value=vid.date)
             embed.add_field(name="Views", value=vid.views)
-            embed.add_field(name="Likes/Dislikes",
-                            value=f"{vid.likes}/{vid.dislikes}")
+            embed.add_field(name="Likes",
+                            value=f"{vid.likes}")
             await ctx.send(embed=embed)
 
         

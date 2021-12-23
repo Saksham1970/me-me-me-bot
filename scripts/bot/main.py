@@ -30,6 +30,8 @@ from state import GuildState, CustomContext
 
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
 
+prefix = gen.permu("me! ") + gen.permu("epic ")
+
 COGS_PATH = os.path.join(os.path.dirname(__file__), "cogs")
 
 WELCOME_MSG = """
@@ -40,8 +42,6 @@ LOG_FILE = os.path.abspath("logs.txt")
 EMOJIS_PATH = os.path.abspath("./assets/emojis")
 DB_PATH = os.path.abspath("./Database")
 BACKUP_PATH = os.path.abspath("./Backup")
-
-prefix = gen.permu("me! ") + gen.permu("epic ")
 
 OWNERS = [413287145323626496, 580282285002194966]
 

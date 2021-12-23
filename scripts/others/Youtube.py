@@ -8,7 +8,7 @@ import urllib.request
 import urllib.parse
 from typing import List,Any
 from selenium.webdriver.chrome.options import Options
-import youtube_dl
+from yt_dlp import YoutubeDL
 import os.path 
 import math
 import tracemalloc
@@ -20,7 +20,7 @@ chrome_options.add_argument("disable-gpu")
 chrome_options.add_argument("headless")
 chrome_options.add_argument("log-level=3")
 
-driver = webdriver.Chrome(chrome_options = chrome_options, executable_path=os.path.abspath("./bin/chromedriver.exe")) 
+driver = webdriver.Chrome(chrome_options = chrome_options, executable_path=os.path.abspath("./bin/chromedriver")) 
 
 driver.get("http://www.youtube.com")
 
@@ -112,6 +112,7 @@ class YoutubeVideo:
         ydl_opts = {
             'format': 'bestaudio',
             'quiet': True,
+            
         } 
         
         need = ["id",
@@ -124,19 +125,18 @@ class YoutubeVideo:
                 "webpage_url",
                 "view_count",
                 "like_count",
-                "dislike_count",
                 "thumbnails",
                 "format_id",
                 "url",
                 "ext"
                 ]
         try:
-            info = youtube_dl.YoutubeDL(ydl_opts).extract_info(self.id,download = False)
+            info = YoutubeDL(ydl_opts).extract_info(self.id,download = False)
         except:
             ydl_opts = {
             'quiet': True,
             }
-            info = youtube_dl.YoutubeDL(ydl_opts).extract_info(self.id,download = False)
+            info = YoutubeDL(ydl_opts).extract_info(self.id,download = False)
         info2 = {}
         for i in need:
             info2[i] = info[i]
@@ -150,13 +150,6 @@ class YoutubeVideo:
     def likes(self) -> str:
         if self._info["like_count"]:
             return millify(self._info["like_count"])
-        else:
-            return None
-    
-    @property
-    def dislikes(self) -> str:
-        if self._info["dislike_count"]:
-            return millify(self._info["dislike_count"])
         else:
             return None
     
@@ -331,7 +324,7 @@ class YoutubePlaylist:
         
         info["url"] = f"https://www.youtube.com/playlist?list={info['id']}"
 
- 
+
 
         driver.get(info["url"])
 
@@ -344,7 +337,15 @@ class YoutubePlaylist:
 
         info["date"] = stats[2].text
 
-        info["thumbnail"] = wait.until(EC.presence_of_element_located(
+        try:
+            driver.find_element_by_css_selector("ytd-playlist-video-thumbnail-renderer img")
+
+        except:
+            info["thumbnail"] = wait.until(EC.presence_of_element_located(
+                                (By.CSS_SELECTOR,"ytd-playlist-custom-thumbnail-renderer img"))).get_attribute("src")
+
+        else:
+            info["thumbnail"] = wait.until(EC.presence_of_element_located(
                                 (By.CSS_SELECTOR,"ytd-playlist-video-thumbnail-renderer img"))).get_attribute("src")
 
         info["uploader"] = wait.until(EC.presence_of_element_located(

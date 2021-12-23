@@ -148,7 +148,7 @@ class Play(commands.Cog):
                             
                     self.log("Downloaded song.")
                    
-                    voice.play(discord.FFmpegPCMAudio(queue[0].audio_url, executable="./Bin/ffmpeg.exe", before_options="-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"),
+                    voice.play(discord.FFmpegPCMAudio(queue[0].audio_url, executable="./bin/ffmpeg", before_options="-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"),
                                after=lambda e: check_queue())
 
                     state.time = 0
@@ -287,13 +287,13 @@ class Play(commands.Cog):
             return
 
         if "http" in query:
-            if "www.youtube.com" in query:
-                split_list = re.split("/|=|&", query)
-                if "watch?v" in split_list:
-                    vid = YoutubeVideo(split_list[split_list.index("watch?v")+1], requested_by=ctx.author.name)
+            if "youtube.com" in query:
+                split_list = re.split("/|=|&|\?", query)
+                if "v" in split_list:
+                    vid = YoutubeVideo(split_list[split_list.index("v")+1], requested_by=ctx.author.name)
 
-                elif "playlist?list" in split_list:
-                    vid = YoutubePlaylist(split_list[split_list.index("playlist?list")+1], requested_by=ctx.author.name)
+                elif "list" in split_list:
+                    vid = YoutubePlaylist(split_list[split_list.index("list")+1], requested_by=ctx.author.name)
                 else:
                     await ctx.send("Couldn't find neither video or playlist.")
                     return
@@ -303,8 +303,10 @@ class Play(commands.Cog):
                 return
         else:
             try:
+              
                 vid = YoutubeVideo(YoutubeVideo.from_query(query=query)[0][0], requested_by=ctx.author.name)
-            except:
+            except Exception as e:
+                print(e)
                 await ctx.send("There was a problem in playing your song, sorry.")
                 
         #! Queueing starts here
@@ -377,16 +379,22 @@ class Play(commands.Cog):
         """Plays a playlist? What did you even expect"""
         
         play_command = self.client.get_command("play")
-        if("https://www.youtube.com/playlist?list" in query):
-            await ctx.invoke(play_command, query=query)
+        if "http" in query:
+            if "youtube.com" in query:
+                split_list = re.split("/|=|&|\?", query)
+                if "list" in split_list:
+                    pid= split_list[split_list.index("list")+1]
+                    print(f"https://www.youtube.com/playlist?list={pid}")
+                    await ctx.invoke(play_command, query=f"https://www.youtube.com/playlist?list={pid}")
+                    return
+            
+        vid_list = YoutubePlaylist.from_query(query)
+        if vid_list == []:
+            await ctx.send(">>> Cant find playlist.")
+            return
         else:
-            vid_list = YoutubePlaylist.from_query(query)
-            if vid_list == []:
-                await ctx.send(">>> Cant find playlist.")
-                return
-            else:
-                vid = vid_list[0]
-                await ctx.invoke(play_command, query=f"https://www.youtube.com/playlist?list={vid.id}")
+            vid = vid_list[0]
+            await ctx.invoke(play_command, query=f"https://www.youtube.com/playlist?list={vid.id}")
 
     # ? SEARCH
 

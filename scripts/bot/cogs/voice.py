@@ -600,7 +600,7 @@ class Voice(commands.Cog):
         time = await self.int_time(ctx, time)
 
         if time:
-            voice.source = discord.FFmpegPCMAudio(queue[0].audio_url, executable="./Bin/ffmpeg.exe", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {time}")
+            voice.source = discord.FFmpegPCMAudio(queue[0].audio_url, executable="./bin/ffmpeg", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {time}")
             state.time = time
         else:
             return
@@ -620,7 +620,7 @@ class Voice(commands.Cog):
         if time:
             if time <= queue[0].seconds - state.time:
                 voice.source = discord.FFmpegPCMAudio(
-                    queue[0].audio_url, executable="./Bin/ffmpeg.exe", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {time + state.time}")
+                    queue[0].audio_url, executable="./bin/ffmpeg", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {time + state.time}")
                 state.time += time
             else:
                 await ctx.send("The seek is greater than the song limit.")
@@ -641,7 +641,7 @@ class Voice(commands.Cog):
         if time:
             if time <= state.time:
                 voice.source = discord.FFmpegPCMAudio(
-                    queue[0].audio_url,executable="./Bin/ffmpeg.exe", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {state.time - time}")
+                    queue[0].audio_url,executable="./bin/ffmpeg", before_options=f"-loglevel quiet -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss {state.time - time}")
                 state.time -= time
             else:
                 await ctx.send("The seek is greater than the song limit.")
